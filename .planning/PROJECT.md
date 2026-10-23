@@ -16,14 +16,13 @@ and the global log shows how the task got there.
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Markdown state store: `.global_dev_log.md` (append-only) and `.active_context/` (STORE-01, STORE-02) — Validated in Phase 1: Foundation
+- [x] Router: agent choice, model choice, launch with dry-run (ROUTE-01..03) — Validated in Phase 1: Foundation
 
 ### Active
 
 <!-- Milestone v1.0: Orchestration core (brief Phases 1-3). -->
 
-- [ ] Markdown state store: `.global_dev_log.md` (append-only) and `.active_context/` (STORE-01, STORE-02)
-- [ ] Router: agent choice, model choice, launch with dry-run (ROUTE-01..03)
 - [ ] Skills: context_orchestrator, context_fetcher, route_task, `mad handoff`, skill install (CTX-01..05)
 - [ ] Telemetry and limit enforcement with a Claude Code hook (TEL-01..04)
 

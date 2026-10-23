@@ -9,14 +9,14 @@ Milestone v1.0, Orchestration core. Details for every requirement are in `docs/s
 
 ### Store
 
-- [ ] **STORE-01**: `mad init` creates `.active_context/` (with an `INDEX.md` stub) and `.global_dev_log.md` (with an OKF header) when missing, never overwrites, and is idempotent (design §3, §5)
-- [ ] **STORE-02**: `mad log` appends exactly one entry in the design §3 format. Earlier bytes of the log stay byte-identical, and multi-line values are flattened
+- [x] **STORE-01**: `mad init` creates `.active_context/` (with an `INDEX.md` stub) and `.global_dev_log.md` (with an OKF header) when missing, never overwrites, and is idempotent (design §3, §5)
+- [x] **STORE-02**: `mad log` appends exactly one entry in the design §3 format. Earlier bytes of the log stay byte-identical, and multi-line values are flattened
 
 ### Route
 
-- [ ] **ROUTE-01**: `mad route` picks the agent by the scoring rule in design §4.1 (keywords from `config/routing.json`, >5 files = an agy signal, ties go to claude) and prints the Decision JSON
-- [ ] **ROUTE-02**: The model is chosen per the design §4.2 table (haiku/sonnet/opus for claude; flash/argon ids for agy), with `--model` override
-- [ ] **ROUTE-03**: `mad run` builds the argv (`claude --model M PROMPT` / `agy --model M -i PROMPT`), appends a `transition` log entry and execs. `--dry-run` prints the argv and changes nothing. Binaries come from `MAD_CLAUDE_BIN` / `MAD_AGY_BIN`
+- [x] **ROUTE-01**: `mad route` picks the agent by the scoring rule in design §4.1 (keywords from `config/routing.json`, >5 files = an agy signal, ties go to claude) and prints the Decision JSON
+- [x] **ROUTE-02**: The model is chosen per the design §4.2 table (haiku/sonnet/opus for claude; flash/argon ids for agy), with `--model` override
+- [x] **ROUTE-03**: `mad run` builds the argv (`claude --model M PROMPT` / `agy --model M -i PROMPT`), appends a `transition` log entry and execs. `--dry-run` prints the argv and changes nothing. Binaries come from `MAD_CLAUDE_BIN` / `MAD_AGY_BIN`
 
 ### Context skills
 
@@ -47,11 +47,11 @@ Milestone v1.0, Orchestration core. Details for every requirement are in `docs/s
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| STORE-01 | Phase 1 | Pending |
-| STORE-02 | Phase 1 | Pending |
-| ROUTE-01 | Phase 1 | Pending |
-| ROUTE-02 | Phase 1 | Pending |
-| ROUTE-03 | Phase 1 | Pending |
+| STORE-01 | Phase 1 | Complete |
+| STORE-02 | Phase 1 | Complete |
+| ROUTE-01 | Phase 1 | Complete |
+| ROUTE-02 | Phase 1 | Complete |
+| ROUTE-03 | Phase 1 | Complete |
 | CTX-01 | Phase 2 | Pending |
 | CTX-02 | Phase 2 | Pending |
 | CTX-03 | Phase 2 | Pending |
