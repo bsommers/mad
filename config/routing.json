@@ -4,6 +4,7 @@
   "opus_keywords": ["deep bug", "race condition", "deadlock", "heisenbug", "memory corruption", "--deep"],
   "haiku_keywords": ["docstring", "readme", "changelog", "regex", "lint", "format", "typo"],
   "agy_file_threshold": 5,
+  "fetch_budget_bytes": 24000,
   "models": {
     "claude": {"light": "haiku", "default": "sonnet", "deep": "opus"},
     "agy": {"light": "gemini-3.8-flash-medium", "heavy": "gemini-4-argon-high"}
