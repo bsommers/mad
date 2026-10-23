@@ -66,3 +66,63 @@ setup() {
   run "$MAD" log --kind note --agent human --field nokv msg
   [ "$status" -eq 2 ]
 }
+
+@test "fetch prints only matching docker file and --reindex updates INDEX.md" {
+  "$MAD" init
+  cat > .active_context/docker_guidelines.md <<'EOF'
+---
+title: Docker Guidelines
+keywords: [docker, container]
+updated: 2026-10-23
+---
+
+Use multi-stage builds.
+EOF
+  cat > .active_context/ui_components.md <<'EOF'
+---
+title: UI Components
+keywords: [react, css]
+updated: 2026-10-23
+---
+
+Use CSS variables.
+EOF
+  run "$MAD" fetch docker
+  [ "$status" -eq 0 ]
+  [ "$output" = ".active_context/docker_guidelines.md" ]
+
+  run "$MAD" fetch --reindex
+  [ "$status" -eq 0 ]
+  [ "$output" = ".active_context/INDEX.md" ]
+  grep -Fq ".active_context/docker_guidelines.md — Docker Guidelines [docker, container]" .active_context/INDEX.md
+}
+
+@test "handoff --write creates .opengsd_handoff.md and handoff launches agy stub" {
+  run "$MAD" handoff
+  [ "$status" -eq 1 ]
+
+  run "$MAD" handoff --write --agent claude --problem "MQTT drop" --step "Check broker" --context ".active_context/mqtt.md" --verify "pytest -q"
+  [ "$status" -eq 0 ]
+  [ -f ".opengsd_handoff.md" ]
+  grep -Fq "## Unresolved problem" .opengsd_handoff.md
+  grep -Fq "## Next exact steps" .opengsd_handoff.md
+  grep -Fq "## Context files to load" .opengsd_handoff.md
+  grep -Fq "## Verify with" .opengsd_handoff.md
+  grep -Fq "· handoff · claude" .global_dev_log.md
+
+  run "$MAD" handoff
+  [ "$status" -eq 0 ]
+  grep -Fq -- "--model" "$STUB_OUT"
+  grep -Fq "gemini-4-argon-high" "$STUB_OUT"
+  grep -Fq "## Unresolved problem" "$STUB_OUT"
+}
+
+@test "check stub exits 0 by default and 10 when MAD_FORCE_HANDOFF=1" {
+  run "$MAD" check
+  [ "$status" -eq 0 ]
+  [ "$output" = "ok" ]
+
+  MAD_FORCE_HANDOFF=1 run "$MAD" check
+  [ "$status" -eq 10 ]
+  [ "$output" = "handoff" ]
+}
