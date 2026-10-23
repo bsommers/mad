@@ -9,7 +9,7 @@ from typing import Sequence
 
 def load_config(path: Path | None = None) -> dict:
     if path is None:
-        env = os.environ.get("MAIORS_CONFIG")
+        env = os.environ.get("MAD_CONFIG")
         path = Path(env) if env else Path(__file__).resolve().parent.parent / "config" / "routing.json"
     return json.loads(Path(path).read_text())
 

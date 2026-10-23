@@ -10,7 +10,7 @@ Skills, `fetch`, `handoff`, and telemetry belong to Phases 2-3.
 
 ## Implementation Decisions
 
-- Bash entry point + stdlib Python package `maiors/` (user choice). pytest and bats for tests, shellcheck for lint.
+- Bash entry point + stdlib Python package `mad/` (user choice). pytest and bats for tests, shellcheck for lint.
 - Routing is a score: agy wins only on a strictly higher score, so ties and no-signal prompts go to claude (spec §4.1).
 - Model ids are in `config/routing.json`: claude `haiku|sonnet|opus`; agy `gemini-3.8-flash-medium` / `gemini-4-argon-high`.
 - agy gets its initial prompt via `-i` (no `--file` exists).
@@ -18,9 +18,9 @@ Skills, `fetch`, `handoff`, and telemetry belong to Phases 2-3.
 
 ## Canonical References
 
-- `docs/superpowers/specs/2026-10-23-maiors-design.md` §3-§5, §9
+- `docs/superpowers/specs/2026-10-23-mad-design.md` §3-§5, §9
 - `docs/superpowers/plans/2026-10-23-phase-1-foundation.md` (step-level plan)
 
 ## Deferred Ideas
 
-- `maiors fetch`, `maiors handoff` → Phase 2; `maiors check` and hooks → Phase 3.
+- `mad fetch`, `mad handoff` → Phase 2; `mad check` and hooks → Phase 3.

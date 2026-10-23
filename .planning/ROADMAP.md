@@ -1,4 +1,4 @@
-# Roadmap: maiors
+# Roadmap: mad
 
 ## Milestones
 
@@ -15,7 +15,7 @@ Milestone v1.0 builds the brief's three phases in order:
 
 - [ ] **Phase 1: Foundation** - Markdown store and router CLI
 - [ ] **Phase 2: Context skills** - context_orchestrator, context_fetcher, route_task, handoff
-- [ ] **Phase 3: Telemetry & limits** - usage estimate, `maiors check`, Claude Code hook
+- [ ] **Phase 3: Telemetry & limits** - usage estimate, `mad check`, Claude Code hook
 
 ## Phase Details
 
@@ -24,10 +24,10 @@ Milestone v1.0 builds the brief's three phases in order:
 **Depends on**: Nothing
 **Requirements**: STORE-01, STORE-02, ROUTE-01, ROUTE-02, ROUTE-03
 **Success Criteria** (what must be TRUE):
-  1. `bin/maiors init` run twice leaves the same files, and an existing log stays byte-identical
-  2. `bin/maiors route "debug the reconnect" a.py` prints `"agent": "claude", "model": "sonnet"`; with 6 files and "design" it prints agy / `gemini-4-argon-high`
-  3. `bin/maiors run --dry-run ...` prints the exact argv; without `--dry-run`, the stub binary receives it and a `transition` entry is appended
-  4. `pytest -q && bats tests/cli.bats && shellcheck bin/maiors` pass
+  1. `bin/mad init` run twice leaves the same files, and an existing log stays byte-identical
+  2. `bin/mad route "debug the reconnect" a.py` prints `"agent": "claude", "model": "sonnet"`; with 6 files and "design" it prints agy / `gemini-4-argon-high`
+  3. `bin/mad run --dry-run ...` prints the exact argv; without `--dry-run`, the stub binary receives it and a `transition` entry is appended
+  4. `pytest -q && bats tests/cli.bats && shellcheck bin/mad` pass
 **Plans**: 1 plan
 
 Plans:
@@ -38,9 +38,9 @@ Plans:
 **Depends on**: Phase 1
 **Requirements**: CTX-01, CTX-02, CTX-03, CTX-04, CTX-05
 **Success Criteria** (what must be TRUE):
-  1. With fixture files `docker_guidelines.md` and `ui_components.md`, `maiors fetch docker` prints only the docker file
+  1. With fixture files `docker_guidelines.md` and `ui_components.md`, `mad fetch docker` prints only the docker file
   2. Running context_orchestrator produces `.opengsd_handoff.md` with exactly the four design §6 sections and appends a `handoff` entry
-  3. `maiors handoff` passes the handoff file's content to the agy stub via `-i`, and exits 1 without the file
+  3. `mad handoff` passes the handoff file's content to the agy stub via `-i`, and exits 1 without the file
   4. `install-skills.sh --dry-run` lists the symlinks it would create and touches nothing
 **Plans**: TBD (written at phase start with superpowers:writing-plans)
 
@@ -49,10 +49,10 @@ Plans:
 **Depends on**: Phase 2
 **Requirements**: TEL-01, TEL-02, TEL-03, TEL-04
 **Success Criteria** (what must be TRUE):
-  1. With a fixture transcript holding 36 user prompts in the last 5 h, `maiors check` exits 10; with 35 it exits 0
+  1. With a fixture transcript holding 36 user prompts in the last 5 h, `mad check` exits 10; with 35 it exits 0
   2. Prompts older than the window aren't counted
   3. The telemetry file is valid JSON after any interrupted write (atomic rename)
-  4. The project hook runs `maiors check` and injects the orchestrator instruction on exit 10
+  4. The project hook runs `mad check` and injects the orchestrator instruction on exit 10
 **Plans**: TBD
 
 ## Progress

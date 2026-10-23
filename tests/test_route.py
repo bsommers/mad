@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from maiors.route import classify, load_config
+from mad.route import classify, load_config
 
 CASES = [
     # prompt, files, agent_override, model_override, expected (agent, model, reasons, scores)
