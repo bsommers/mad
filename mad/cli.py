@@ -1,0 +1,97 @@
+"""Argparse CLI front end for mad."""
+import argparse
+import os
+import shlex
+import sys
+from pathlib import Path
+
+from mad.launch import build_command, exec_command
+from mad.route import classify, load_config
+from mad.store import append_log, find_root, init_store
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="mad")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    sub.add_parser("init")
+
+    p_route = sub.add_parser("route")
+    p_route.add_argument("--agent", choices=("claude", "agy"))
+    p_route.add_argument("--model")
+    p_route.add_argument("prompt")
+    p_route.add_argument("files", nargs="*")
+
+    p_run = sub.add_parser("run")
+    p_run.add_argument("--agent", choices=("claude", "agy"))
+    p_run.add_argument("--model")
+    p_run.add_argument("--dry-run", action="store_true")
+    p_run.add_argument("prompt")
+    p_run.add_argument("files", nargs="*")
+
+    p_log = sub.add_parser("log")
+    p_log.add_argument("--kind", required=True)
+    p_log.add_argument("--agent", required=True)
+    p_log.add_argument("--field", action="append", default=[])
+    p_log.add_argument("message")
+
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = _build_parser()
+    ns = parser.parse_args(argv)
+    root = find_root(Path.cwd())
+
+    try:
+        if ns.cmd == "init":
+            created = init_store(root)
+            if not created:
+                print("nothing to do")
+            else:
+                for p in created:
+                    print(p.relative_to(root))
+            return 0
+
+        if ns.cmd == "route":
+            cfg = load_config()
+            decision = classify(ns.prompt, ns.files, cfg, agent=ns.agent, model=ns.model)
+            print(decision.to_json())
+            return 0
+
+        if ns.cmd == "run":
+            cfg = load_config()
+            decision = classify(ns.prompt, ns.files, cfg, agent=ns.agent, model=ns.model)
+            cmd = build_command(decision, ns.prompt, ns.files, os.environ)
+            if ns.dry_run:
+                print(shlex.join(cmd))
+                return 0
+            append_log(
+                root,
+                "transition",
+                decision.agent,
+                {
+                    "model": decision.model,
+                    "task": ns.prompt,
+                    "reasons": ",".join(decision.reasons),
+                },
+            )
+            exec_command(cmd)
+
+        if ns.cmd == "log":
+            fields: dict[str, str] = {"task": ns.message}
+            for item in ns.field:
+                if "=" not in item:
+                    parser.error(f"invalid --field (expected k=v): {item}")
+                k, v = item.split("=", 1)
+                if not k:
+                    parser.error(f"invalid --field (empty key): {item}")
+                fields[k] = v
+            append_log(root, ns.kind, ns.agent, fields)
+            return 0
+
+    except ValueError as exc:
+        print(f"mad: {exc}", file=sys.stderr)
+        return 1
+
+    return 2
