@@ -50,7 +50,11 @@ Plans:
   3. `mad handoff` passes the handoff file's content to the agy stub via `-i`, and exits 1 without the file
   4. `install-skills.sh --dry-run` lists the symlinks it would create and touches nothing
 
-**Plans**: TBD (written at phase start with superpowers:writing-plans)
+**Plans**: 1 plan
+
+Plans:
+
+- [ ] 02-01-PLAN.md — context fetcher, handoff writer/launcher, skills, installer (steps in docs/superpowers/plans/2026-10-23-phase-2-context-skills.md)
 
 ### Phase 3: Telemetry & limits
 
@@ -71,5 +75,5 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation | v1.0 | 1/1 | Complete    | 2026-10-23 |
-| 2. Context skills | v1.0 | 0/TBD | Not started | - |
+| 2. Context skills | v1.0 | 0/1 | Planned | - |
 | 3. Telemetry & limits | v1.0 | 0/TBD | Not started | - |

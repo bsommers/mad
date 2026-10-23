@@ -23,15 +23,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-23)
 
 **Core value:** A handoff never loses state. Whichever CLI picks up a task gets the unresolved problem and the next steps in one file, and the global log shows how the task got there.
-**Current focus:** Milestone v1.0, Phase 2: Context skills (Not planned)
+**Current focus:** Milestone v1.0, Phase 2: Context skills (planned, awaiting go-ahead)
 
 ## Current Position
 
 Milestone: v1.0 Orchestration core
 Phase: 2 (Context skills), of phases 1-3
-Plan: Not planned
-Status: Not planned — awaiting user go-ahead for Phase 2
-Last activity: 2026-10-23 — Phase 1 (Foundation) completed and verified
+Plan: 0 of 1 in current phase
+Status: Planned — waiting for user go-ahead to execute docs/superpowers/plans/2026-10-23-phase-2-context-skills.md
+Last activity: 2026-10-23 — Phase 2 planned (02-01-PLAN.md)
 
 Progress: [███░░░░░░░] 33%
 
