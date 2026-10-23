@@ -1,0 +1,11 @@
+{
+  "claude_keywords": ["debug", "write test", "write tests", "fix error", "fix the error", "failing test", "red-green", "tdd", "stack trace"],
+  "agy_keywords": ["design", "architect", "architecture", "refactor all", "ontology", "bfo", "cco", "unified namespace", "uns", "documentation set"],
+  "opus_keywords": ["deep bug", "race condition", "deadlock", "heisenbug", "memory corruption", "--deep"],
+  "haiku_keywords": ["docstring", "readme", "changelog", "regex", "lint", "format", "typo"],
+  "agy_file_threshold": 5,
+  "models": {
+    "claude": {"light": "haiku", "default": "sonnet", "deep": "opus"},
+    "agy": {"light": "gemini-3.8-flash-medium", "heavy": "gemini-4-argon-high"}
+  }
+}
