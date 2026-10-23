@@ -1,0 +1,4 @@
+__pycache__/
+.pytest_cache/
+.agent_telemetry.json
+.opengsd_handoff.md
