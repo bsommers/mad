@@ -8,5 +8,12 @@
   "models": {
     "claude": {"light": "haiku", "default": "sonnet", "deep": "opus"},
     "agy": {"light": "gemini-3.8-flash-medium", "heavy": "gemini-4-argon-high"}
+  },
+  "telemetry": {
+    "window_hours": 5,
+    "window_message_budget": 45,
+    "handoff_ratio": 0.8,
+    "agy_max_concurrent": 2,
+    "agy_rate_limit_cooldown_minutes": 15
   }
 }
