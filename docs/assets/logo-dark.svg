@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 1080 460"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg">
+  <title id="title">mad — Multi-Agent Intelligent Orchestration &amp; Routing System</title>
+  <desc id="desc">An unbothered gap-toothed switchboard operator flipping a knife switch between a sweating Claude robot at 36/45 messages and a six-armed Agy robot juggling 8 files, passing a glowing .opengsd_handoff.md baton while the API bill meter reads $0.00.</desc>
+
+  <defs>
+    <linearGradient id="bgGradDark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="batonGlowDark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#fde047" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#fde047" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background card -->
+  <rect x="12" y="12" width="1056" height="436" rx="22" fill="url(#bgGradDark)" stroke="#475569" stroke-width="5" />
+
+  <!-- Subtle comic grid lines -->
+  <g stroke="#38bdf8" stroke-width="1" opacity="0.12">
+    <path d="M12 95 H1068 M12 185 H1068 M12 275 H1068 M12 365 H1068" />
+    <path d="M140 12 V448 M280 12 V448 M420 12 V448 M560 12 V448" />
+  </g>
+
+  <!-- ================= LEFT ROBOT: CLAUDE (SWEATING AT 36/45) ================= -->
+  <g id="claude-bot" transform="translate(36, 62)">
+    <!-- Quota gauge above head -->
+    <rect x="18" y="0" width="150" height="34" rx="8" fill="#450a0a" stroke="#f8fafc" stroke-width="3.5" />
+    <rect x="24" y="6" width="112" height="22" rx="4" fill="#ef4444" />
+    <text x="93" y="22" text-anchor="middle" font-family="'DejaVu Sans Mono', monospace" font-weight="bold" font-size="14" fill="#ffffff">36/45 · EXIT 10!</text>
+
+    <!-- Antenna with alarm spark -->
+    <path d="M93 34 V58" stroke="#f8fafc" stroke-width="5" stroke-linecap="round" />
+    <circle cx="93" cy="34" r="7" fill="#ef4444" stroke="#f8fafc" stroke-width="3" />
+    <path d="M70 18 l-10 -8 M116 18 l10 -8" stroke="#f87171" stroke-width="4" stroke-linecap="round" />
+
+    <!-- Head -->
+    <rect x="33" y="58" width="120" height="92" rx="16" fill="#ea580c" stroke="#f8fafc" stroke-width="4.5" />
+    <rect x="47" y="72" width="92" height="58" rx="8" fill="#fff7ed" stroke="#1e293b" stroke-width="3.5" />
+
+    <!-- Panicked eyes -->
+    <circle cx="72" cy="96" r="11" fill="#ffffff" stroke="#1e293b" stroke-width="3.5" />
+    <circle cx="74" cy="96" r="4.5" fill="#1e293b" />
+    <circle cx="114" cy="96" r="11" fill="#ffffff" stroke="#1e293b" stroke-width="3.5" />
+    <circle cx="112" cy="96" r="4.5" fill="#1e293b" />
+    <!-- Wavy stressed mouth -->
+    <path d="M68 118 q8 -7 16 0 t16 0 t16 0" fill="none" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round" />
+
+    <!-- Sweat drops flying off -->
+    <path d="M18 76 q-8 12 0 16 q8 -4 0 -16z" fill="#38bdf8" stroke="#f8fafc" stroke-width="2" />
+    <path d="M168 68 q-8 12 0 16 q8 -4 0 -16z" fill="#38bdf8" stroke="#f8fafc" stroke-width="2" />
+    <path d="M176 98 q-7 10 0 14 q7 -4 0 -14z" fill="#38bdf8" stroke="#f8fafc" stroke-width="2" />
+
+    <!-- Torso -->
+    <rect x="41" y="156" width="104" height="88" rx="12" fill="#f97316" stroke="#f8fafc" stroke-width="4.5" />
+    <rect x="55" y="172" width="76" height="32" rx="6" fill="#0f172a" />
+    <text x="93" y="193" text-anchor="middle" font-family="'DejaVu Sans Mono', monospace" font-weight="bold" font-size="15" fill="#fdba74">claude</text>
+    <text x="93" y="230" text-anchor="middle" font-family="'DejaVu Sans Mono', monospace" font-weight="bold" font-size="12" fill="#0f172a">RED-GREEN-WHEW</text>
+
+    <!-- Arms -->
+    <path d="M41 185 C12 195 10 230 28 248" fill="none" stroke="#f8fafc" stroke-width="6" stroke-linecap="round" />
+    <path d="M145 185 C175 165 198 152 218 148" fill="none" stroke="#f8fafc" stroke-width="6" stroke-linecap="round" />
+
+    <!-- Legs -->
+    <path d="M68 244 V285 M118 244 V285" stroke="#f8fafc" stroke-width="7" stroke-linecap="round" />
+    <rect x="52" y="282" width="30" height="14" rx="5" fill="#64748b" stroke="#f8fafc" stroke-width="3.5" />
+    <rect x="104" y="282" width="30" height="14" rx="5" fill="#64748b" stroke="#f8fafc" stroke-width="3.5" />
+  </g>
+
+  <!-- ================= CENTER: "MAD" SWITCHBOARD & BATON PASS ================= -->
+  <g id="handoff-center" transform="translate(232, 46)">
+    <!-- Curved relay arc -->
+    <path d="M18 145 Q138 35 258 145" fill="none" stroke="#fbbf24" stroke-width="5" stroke-dasharray="10 7" />
+
+    <!-- Glowing Baton: .opengsd_handoff.md -->
+    <g transform="translate(46, 54) rotate(-8)">
+      <rect x="0" y="0" width="184" height="40" rx="10" fill="url(#batonGlowDark)" stroke="#f8fafc" stroke-width="4" />
+      <circle cx="18" cy="20" r="6" fill="#fef08a" stroke="#1e293b" stroke-width="2.5" />
+      <text x="98" y="25" text-anchor="middle" font-family="'DejaVu Sans Mono', monospace" font-weight="bold" font-size="13" fill="#0f172a">.opengsd_handoff.md</text>
+    </g>
+
+    <!-- Unbothered gap-toothed MAD mascot / dispatcher console -->
+    <rect x="52" y="210" width="172" height="128" rx="14" fill="#334155" stroke="#f8fafc" stroke-width="4.5" />
+    <rect x="66" y="224" width="144" height="52" rx="8" fill="#020617" stroke="#64748b" stroke-width="3" />
+    <text x="138" y="246" text-anchor="middle" font-family="'DejaVu Sans Mono', monospace" font-weight="bold" font-size="13" fill="#4ade80">$ mad check -&gt; 10</text>
+    <text x="138" y="266" text-anchor="middle" font-family="'DejaVu Sans Mono', monospace" font-weight="bold" font-size="13" fill="#38bdf8">$ mad handoff</text>
+
+    <!-- Mascot face -->
+    <circle cx="138" cy="166" r="40" fill="#fde68a" stroke="#f8fafc" stroke-width="4.5" />
+    <ellipse cx="94" cy="168" rx="10" ry="15" fill="#fde68a" stroke="#f8fafc" stroke-width="3.5" />
+    <ellipse cx="182" cy="168" rx="10" ry="15" fill="#fde68a" stroke="#f8fafc" stroke-width="3.5" />
+    <path d="M96 155 A44 44 0 0 1 180 155" fill="none" stroke="#f8fafc" stroke-width="6" />
+    <rect x="86" y="152" width="12" height="24" rx="4" fill="#ef4444" stroke="#f8fafc" stroke-width="2.5" />
+    <rect x="178" y="152" width="12" height="24" rx="4" fill="#ef4444" stroke="#f8fafc" stroke-width="2.5" />
+    <path d="M126 126 l6 -14 l8 12 l8 -12 l4 14" fill="none" stroke="#fbbf24" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+    <circle cx="124" cy="160" r="5" fill="#0f172a" />
+    <circle cx="152" cy="160" r="5" fill="#0f172a" />
+    <path d="M116 176 Q138 196 160 176 Z" fill="#ffffff" stroke="#0f172a" stroke-width="3.5" />
+    <rect x="134" y="177" width="8" height="9" fill="#0f172a" />
+
+    <!-- API Keys $0.00 badge -->
+    <rect x="74" y="290" width="128" height="34" rx="8" fill="#064e3b" stroke="#4ade80" stroke-width="3" />
+    <text x="138" y="312" text-anchor="middle" font-family="'DejaVu Sans Mono', monospace" font-weight="bold" font-size="13" fill="#4ade80">API KEYS: $0.00</text>
+  </g>
+
+  <!-- ================= RIGHT ROBOT: AGY (6 FILES / HEAVY ARCHITECT) ================= -->
+  <g id="agy-bot" transform="translate(476, 62)">
+    <!-- Badge above head -->
+    <rect x="10" y="0" width="166" height="34" rx="8" fill="#1e3a8a" stroke="#f8fafc" stroke-width="3.5" />
+    <text x="93" y="22" text-anchor="middle" font-family="'DejaVu Sans Mono', monospace" font-weight="bold" font-size="13" fill="#93c5fd">&gt;5 FILES · ARGON-HIGH</text>
+
+    <!-- Dual antennas -->
+    <path d="M68 34 V58 M118 34 V58" stroke="#f8fafc" stroke-width="5" stroke-linecap="round" />
+    <circle cx="68" cy="34" r="6" fill="#3b82f6" stroke="#f8fafc" stroke-width="2.5" />
+    <circle cx="118" cy="34" r="6" fill="#8b5cf6" stroke="#f8fafc" stroke-width="2.5" />
+
+    <!-- Head -->
+    <rect x="33" y="58" width="120" height="92" rx="16" fill="#2563eb" stroke="#f8fafc" stroke-width="4.5" />
+    <rect x="47" y="72" width="92" height="58" rx="8" fill="#eff6ff" stroke="#1e293b" stroke-width="3.5" />
+
+    <!-- Cool visor shades -->
+    <polygon points="54,84 132,84 124,104 62,104" fill="#0f172a" />
+    <path d="M62 88 h22" stroke="#60a5fa" stroke-width="3" stroke-linecap="round" />
+    <path d="M74 118 q20 8 38 -4" fill="none" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round" />
+
+    <!-- Torso -->
+    <rect x="41" y="156" width="104" height="88" rx="12" fill="#3b82f6" stroke="#f8fafc" stroke-width="4.5" />
+    <rect x="55" y="172" width="76" height="32" rx="6" fill="#0f172a" />
+    <text x="93" y="193" text-anchor="middle" font-family="'DejaVu Sans Mono', monospace" font-weight="bold" font-size="15" fill="#93c5fd">agy -i</text>
+    <text x="93" y="230" text-anchor="middle" font-family="'DejaVu Sans Mono', monospace" font-weight="bold" font-size="12" fill="#ffffff">1M CONTEXT GO BRR</text>
+
+    <!-- Arms -->
+    <path d="M41 185 C15 165 -2 152 -16 146" fill="none" stroke="#f8fafc" stroke-width="6" stroke-linecap="round" />
+    <path d="M145 185 C172 175 182 145 174 122" fill="none" stroke="#f8fafc" stroke-width="6" stroke-linecap="round" />
+
+    <!-- Stack of markdown files -->
+    <g transform="translate(152, 74)">
+      <rect x="0" y="30" width="38" height="12" rx="2" fill="#a78bfa" stroke="#0f172a" stroke-width="2.5" />
+      <rect x="3" y="18" width="38" height="12" rx="2" fill="#60a5fa" stroke="#0f172a" stroke-width="2.5" />
+      <rect x="-2" y="6" width="38" height="12" rx="2" fill="#34d399" stroke="#0f172a" stroke-width="2.5" />
+      <rect x="2" y="-6" width="38" height="12" rx="2" fill="#fbbf24" stroke="#0f172a" stroke-width="2.5" />
+    </g>
+
+    <!-- Hover thruster -->
+    <path d="M68 244 L93 292 L118 244 Z" fill="#38bdf8" stroke="#f8fafc" stroke-width="3.5" stroke-linejoin="round" />
+    <path d="M78 244 L93 274 L108 244 Z" fill="#fef08a" />
+  </g>
+
+  <!-- ================= RIGHT PANEL: TITLE & TAGLINE ================= -->
+  <g transform="translate(684, 88)">
+    <text x="0" y="92" font-family="'DejaVu Sans', 'Inter', sans-serif" font-weight="900" font-size="112" letter-spacing="-4" fill="#f8fafc">mad</text>
+    <g transform="translate(242, 18) rotate(8)">
+      <rect x="0" y="0" width="110" height="36" rx="6" fill="#ef4444" stroke="#f8fafc" stroke-width="3" />
+      <text x="55" y="24" text-anchor="middle" font-family="'DejaVu Sans Mono', monospace" font-weight="bold" font-size="15" fill="#ffffff">v1.0 OKF</text>
+    </g>
+
+    <text x="4" y="138" font-family="'DejaVu Sans', sans-serif" font-weight="700" font-size="21" fill="#e2e8f0">
+      Multi-Agent Dispatch &amp; Routing
+    </text>
+    <text x="4" y="168" font-family="'DejaVu Sans', sans-serif" font-weight="600" font-size="17" fill="#fbbf24">
+      What, me worry about rate limits?
+    </text>
+
+    <!-- Feature pills -->
+    <g transform="translate(4, 196)">
+      <rect x="0" y="0" width="348" height="36" rx="8" fill="#0f172a" stroke="#475569" stroke-width="2.5" />
+      <text x="14" y="23" font-family="'DejaVu Sans Mono', monospace" font-size="13.5" fill="#f8fafc">⚡ debug / TDD  → claude (sonnet/opus)</text>
+
+      <rect x="0" y="46" width="348" height="36" rx="8" fill="#0f172a" stroke="#475569" stroke-width="2.5" />
+      <text x="14" y="69" font-family="'DejaVu Sans Mono', monospace" font-size="13.5" fill="#f8fafc">🏗️ &gt;5 files/arch → agy (argon-high)</text>
+
+      <rect x="0" y="92" width="348" height="36" rx="8" fill="#0f172a" stroke="#475569" stroke-width="2.5" />
+      <text x="14" y="115" font-family="'DejaVu Sans Mono', monospace" font-size="13.5" fill="#f8fafc">🤝 80% window   → auto-handoff baton</text>
+    </g>
+  </g>
+
+  <!-- Footer quip -->
+  <text x="540" y="432" text-anchor="middle" font-family="'DejaVu Sans Mono', monospace" font-size="13" fill="#94a3b8">
+    two subscriptions · one append-only markdown brain · zero API keys harmed
+  </text>
+</svg>
