@@ -68,7 +68,11 @@ Plans:
   3. The telemetry file is valid JSON after any interrupted write (atomic rename)
   4. The project hook runs `mad check` and injects the orchestrator instruction on exit 10
 
-**Plans**: TBD
+**Plans**: 0/1 plans complete
+
+Plans:
+
+- [ ] 03-01-PLAN.md — telemetry store, transcript counter, `mad check`, Claude Code hook (steps in docs/superpowers/plans/2026-10-23-phase-3-telemetry-limits.md)
 
 ## Progress
 
@@ -76,4 +80,4 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation | v1.0 | 1/1 | Complete    | 2026-10-23 |
 | 2. Context skills | v1.0 | 1/1 | Complete    | 2026-10-23 |
-| 3. Telemetry & limits | v1.0 | 0/TBD | Not started | - |
+| 3. Telemetry & limits | v1.0 | 0/1 | In progress | - |
