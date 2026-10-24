@@ -28,10 +28,10 @@ Milestone v1.0, Orchestration core. Details for every requirement are in `docs/s
 
 ### Telemetry
 
-- [ ] **TEL-01**: `.agent_telemetry.json` follows the design §7 schema; writes are atomic (temp file + rename)
-- [ ] **TEL-02**: Claude window usage is estimated from user-prompt entries in `~/.claude/projects/*/*.jsonl` within `window_hours`; the transcript root is overridable for tests
-- [ ] **TEL-03**: `mad check` exits 10 (`handoff`) at `ceil(budget × ratio)` claude messages, or when agy is at `max_concurrent` or was rate-limited within 15 min; otherwise exits 0 (`ok`)
-- [ ] **TEL-04**: A project `.claude/settings.json` `UserPromptSubmit` hook runs `mad check` and, on exit 10, injects the context_orchestrator instruction
+- [x] **TEL-01**: `.agent_telemetry.json` follows the design §7 schema; writes are atomic (temp file + rename)
+- [x] **TEL-02**: Claude window usage is estimated from user-prompt entries in `~/.claude/projects/*/*.jsonl` within `window_hours`; the transcript root is overridable for tests
+- [x] **TEL-03**: `mad check` exits 10 (`handoff`) at `ceil(budget × ratio)` claude messages, or when agy is at `max_concurrent` or was rate-limited within 15 min; otherwise exits 0 (`ok`)
+- [x] **TEL-04**: A project `.claude/settings.json` `UserPromptSubmit` hook runs `mad check` and, on exit 10, injects the context_orchestrator instruction
 
 ## Out of Scope
 
@@ -57,9 +57,9 @@ Milestone v1.0, Orchestration core. Details for every requirement are in `docs/s
 | CTX-03 | Phase 2 | Complete |
 | CTX-04 | Phase 2 | Complete |
 | CTX-05 | Phase 2 | Complete |
-| TEL-01 | Phase 3 | Pending |
-| TEL-02 | Phase 3 | Pending |
-| TEL-03 | Phase 3 | Pending |
-| TEL-04 | Phase 3 | Pending |
+| TEL-01 | Phase 3 | Complete |
+| TEL-02 | Phase 3 | Complete |
+| TEL-03 | Phase 3 | Complete |
+| TEL-04 | Phase 3 | Complete |
 
 **Coverage:** 14 v1 requirements, 14 mapped, 0 unmapped.

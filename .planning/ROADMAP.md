@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.0 Orchestration core** - Phases 1-3 (in progress)
+- ✅ **v1.0 Orchestration core** - Phases 1-3 (completed 2026-10-23)
 
 ## Overview
 
@@ -16,7 +16,7 @@ Milestone v1.0 builds the brief's three phases in order:
 
 - [x] **Phase 1: Foundation** - Markdown store and router CLI (completed 2026-10-23)
 - [x] **Phase 2: Context skills** - context_orchestrator, context_fetcher, route_task, handoff (completed 2026-10-23)
-- [ ] **Phase 3: Telemetry & limits** - usage estimate, `mad check`, Claude Code hook
+- [x] **Phase 3: Telemetry & limits** - usage estimate, `mad check`, Claude Code hook (completed 2026-10-23)
 
 ## Phase Details
 
@@ -68,11 +68,11 @@ Plans:
   3. The telemetry file is valid JSON after any interrupted write (atomic rename)
   4. The project hook runs `mad check` and injects the orchestrator instruction on exit 10
 
-**Plans**: 0/1 plans complete
+**Plans**: 1/1 plans complete
 
 Plans:
 
-- [ ] 03-01-PLAN.md — telemetry store, transcript counter, `mad check`, Claude Code hook (steps in docs/superpowers/plans/2026-10-23-phase-3-telemetry-limits.md)
+- [x] 03-01-PLAN.md — telemetry store, transcript counter, `mad check`, Claude Code hook (steps in docs/superpowers/plans/2026-10-23-phase-3-telemetry-limits.md)
 
 ## Progress
 
@@ -80,4 +80,4 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1. Foundation | v1.0 | 1/1 | Complete    | 2026-10-23 |
 | 2. Context skills | v1.0 | 1/1 | Complete    | 2026-10-23 |
-| 3. Telemetry & limits | v1.0 | 0/1 | In progress | - |
+| 3. Telemetry & limits | v1.0 | 1/1 | Complete    | 2026-10-23 |

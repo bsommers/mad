@@ -18,17 +18,19 @@ The design of record is `docs/superpowers/specs/2026-10-23-mad-design.md`. Where
 
 ## Commands
 
-These exist once Phase 1 has shipped. Until then, see `.planning/STATE.md`.
-
 ```bash
 pytest -q                          # all Python tests (stdlib-only code, pytest for tests)
 pytest tests/test_route.py -q      # one file
 pytest tests/test_route.py::test_debug_goes_to_claude -q   # one test
 bats tests/cli.bats                # bash entry-point tests
-shellcheck bin/mad              # lint bash
+shellcheck bin/mad scripts/*.sh    # lint bash
 bin/mad route "debug the mqtt reconnect" src/a.py    # print the routing decision as JSON, launch nothing
-bin/mad run --dry-run "design the UNS tree"           # print the command it would exec
-bin/mad init                    # create .active_context/ and .global_dev_log.md (idempotent)
+bin/mad run --dry-run "design the UNS tree"          # print the command it would exec
+bin/mad init                       # create .active_context/ and .global_dev_log.md (idempotent)
+bin/mad fetch docker               # score .active_context/*.md by keyword/title within byte budget
+bin/mad handoff --write --agent claude --problem "..." --step "..."   # write .opengsd_handoff.md + log
+bin/mad handoff                    # launch agy with .opengsd_handoff.md via -i
+bin/mad check                      # update .agent_telemetry.json and exit 0 (ok) or 10 (handoff)
 ```
 
 No test may launch a real `claude` or `agy`. Tests set `MAD_CLAUDE_BIN` / `MAD_AGY_BIN` to stub scripts.
@@ -41,9 +43,14 @@ mad/               Python package, stdlib only
   route.py            classify(prompt, files) -> Decision(agent, model, reasons)  (pure; no I/O)
   store.py            init_store(), append_log()  (.global_dev_log.md, .active_context/)
   launch.py           build_command(decision, prompt) -> argv; exec or dry-run
-  cli.py              argparse front end for route / run / init / log
-config/routing.json   keywords, file-count threshold, model ids. Tune routing here, not in code
-skills/<name>/SKILL.md  Phase 2 skills, shared by both CLIs
+  context.py          fetch_context(), reindex_context()  (.active_context/ scoring & INDEX.md)
+  handoff.py          write_handoff(), validate_handoff(), build_handoff_command()  (.opengsd_handoff.md)
+  telemetry.py        count_claude_messages(), write_telemetry_atomic(), check_limits()  (.agent_telemetry.json)
+  cli.py              argparse front end for init / route / run / log / fetch / handoff / check
+config/routing.json   keywords, file-count threshold, model ids, fetch budget, telemetry thresholds
+skills/<name>/SKILL.md  Phase 2 skills (context_orchestrator, context_fetcher, route_task)
+scripts/              install-skills.sh, claude-check-hook.sh
+.claude/settings.json project UserPromptSubmit hook invoking scripts/claude-check-hook.sh
 tests/                pytest (Python) + cli.bats (bash)
 .planning/            OpenGSD artifacts (PROJECT, REQUIREMENTS, ROADMAP, STATE, phases/)
 docs/superpowers/     superpowers specs/ and step-level plans/
