@@ -10,6 +10,7 @@ from mad.handoff import build_handoff_command, validate_handoff, write_handoff
 from mad.launch import build_command, exec_command
 from mad.route import classify, load_config
 from mad.store import append_log, find_root, init_store
+from mad.telemetry import check_limits
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -53,7 +54,9 @@ def _build_parser() -> argparse.ArgumentParser:
     p_handoff.add_argument("--file")
     p_handoff.add_argument("--dry-run", action="store_true")
 
-    sub.add_parser("check")
+    p_check = sub.add_parser("check")
+    p_check.add_argument("--transcripts-dir")
+    p_check.add_argument("--record-rate-limit", action="store_true")
 
     return parser
 
@@ -151,7 +154,16 @@ def main(argv: list[str] | None = None) -> int:
             exec_command(cmd)
 
         if ns.cmd == "check":
-            if os.environ.get("MAD_FORCE_HANDOFF") == "1":
+            cfg = load_config()
+            tdir = Path(ns.transcripts_dir) if ns.transcripts_dir else None
+            should_handoff, _ = check_limits(
+                root,
+                cfg=cfg,
+                transcripts_dir=tdir,
+                record_rate_limit=ns.record_rate_limit,
+                env=os.environ,
+            )
+            if should_handoff:
                 print("handoff")
                 return 10
             print("ok")

@@ -5,9 +5,10 @@ setup() {
   MAD="$REPO/bin/mad"
   export MAD_CLAUDE_BIN="$REPO/tests/stub_cli.sh"
   export MAD_AGY_BIN="$REPO/tests/stub_cli.sh"
+  export MAD_CLAUDE_PROJECTS_DIR="$BATS_TEST_TMPDIR/claude_projects"
   export STUB_OUT="$BATS_TEST_TMPDIR/argv"
   cd "$BATS_TEST_TMPDIR"
-  mkdir -p .git
+  mkdir -p .git "$MAD_CLAUDE_PROJECTS_DIR"
 }
 
 @test "route prints claude/sonnet for debug" {
@@ -156,4 +157,65 @@ EOF
   mkdir -p "$MAD_CLAUDE_SKILLS_DIR/route_task"
   run "$REPO/scripts/install-skills.sh"
   [ "$status" -eq 1 ]
+}
+
+@test "mad check counts 35 prompts as ok and 36 as handoff, writing .agent_telemetry.json" {
+  mkdir -p "$MAD_CLAUDE_PROJECTS_DIR/proj1"
+  python3 - "$MAD_CLAUDE_PROJECTS_DIR/proj1/s.jsonl" 35 <<'PY'
+import json, sys
+from datetime import datetime, timedelta, timezone
+path, count = sys.argv[1], int(sys.argv[2])
+now = datetime.now(timezone.utc)
+with open(path, "w", encoding="utf-8") as f:
+    # 2 old messages outside 5h window
+    for i in range(2):
+        ts = (now - timedelta(hours=7, minutes=i)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        f.write(json.dumps({"type": "user", "timestamp": ts}) + "\n")
+    for i in range(count):
+        ts = (now - timedelta(hours=4) + timedelta(minutes=i)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        f.write(json.dumps({"type": "user", "timestamp": ts}) + "\n")
+PY
+
+  run "$MAD" check
+  [ "$status" -eq 0 ]
+  [ "$output" = "ok" ]
+  [ -f ".agent_telemetry.json" ]
+  msgs="$(python3 -c 'import json;print(json.load(open(".agent_telemetry.json"))["claude"]["messages_in_window"])')"
+  [ "$msgs" = "35" ]
+
+  # Append 36th message inside window -> exit 10
+  python3 - "$MAD_CLAUDE_PROJECTS_DIR/proj1/s.jsonl" <<'PY'
+import json, sys
+from datetime import datetime, timezone
+ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+with open(sys.argv[1], "a", encoding="utf-8") as f:
+    f.write(json.dumps({"type": "user", "timestamp": ts}) + "\n")
+PY
+
+  run "$MAD" check
+  [ "$status" -eq 10 ]
+  [ "$output" = "handoff" ]
+  msgs="$(python3 -c 'import json;print(json.load(open(".agent_telemetry.json"))["claude"]["messages_in_window"])')"
+  [ "$msgs" = "36" ]
+}
+
+@test "mad check --record-rate-limit triggers handoff and UserPromptSubmit hook injects instruction" {
+  [ -f "$REPO/.claude/settings.json" ]
+  grep -Fq "claude-check-hook.sh" "$REPO/.claude/settings.json"
+
+  # Hook is silent when check is ok
+  run "$REPO/scripts/claude-check-hook.sh"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+
+  # Record rate limit -> mad check exits 10
+  run "$MAD" check --record-rate-limit
+  [ "$status" -eq 10 ]
+  [ "$output" = "handoff" ]
+
+  # Now hook emits hookSpecificOutput JSON with context_orchestrator instruction
+  run "$REPO/scripts/claude-check-hook.sh"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"hookSpecificOutput"* ]]
+  [[ "$output" == *"context_orchestrator"* ]]
 }
