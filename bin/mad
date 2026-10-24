@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+real_script="$(readlink -f "${BASH_SOURCE[0]}")"
+dir="$(dirname "$real_script")"
+PYTHONPATH="$dir/..${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m mad "$@"

@@ -1,8 +1,8 @@
-# maiors
+# mad
 
 ## What This Is
 
-maiors (Multi-Agent Intelligent Orchestration & Routing System) is a local orchestration layer for one developer
+mad (Multi-Agent Intelligent Orchestration & Routing System) is a local orchestration layer for one developer
 who has two subscriptions: Claude Code Pro (`claude`) and Google AI Ultra (`agy`). It routes each task to the
 right CLI and model, gives agents only the context they need, and keeps a shared Markdown log so that work can
 hand off between the CLIs before a usage limit stops it. It extends the OpenGSD and superpowers workflows rather than replacing them.
@@ -16,16 +16,14 @@ and the global log shows how the task got there.
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Markdown state store: `.global_dev_log.md` (append-only) and `.active_context/` (STORE-01, STORE-02) — Validated in Phase 1: Foundation
+- [x] Router: agent choice, model choice, launch with dry-run (ROUTE-01..03) — Validated in Phase 1: Foundation
+- [x] Skills: context_orchestrator, context_fetcher, route_task, `mad handoff`, skill install (CTX-01..05) — Validated in Phase 2: Context skills
+- [x] Telemetry and limit enforcement with a Claude Code hook (TEL-01..04) — Validated in Phase 3: Telemetry & limits
 
 ### Active
 
-<!-- Milestone v1.0: Orchestration core (brief Phases 1-3). -->
-
-- [ ] Markdown state store: `.global_dev_log.md` (append-only) and `.active_context/` (STORE-01, STORE-02)
-- [ ] Router: agent choice, model choice, launch with dry-run (ROUTE-01..03)
-- [ ] Skills: context_orchestrator, context_fetcher, route_task, `maiors handoff`, skill install (CTX-01..05)
-- [ ] Telemetry and limit enforcement with a Claude Code hook (TEL-01..04)
+<!-- Milestone v1.0: Orchestration core (brief Phases 1-3) complete. -->
 
 ### Out of Scope
 
@@ -37,7 +35,7 @@ and the global log shows how the task got there.
 
 ## Context
 
-- Original brief: `multi-agent-intelligent-orchestration-routing-specification.md`. Design of record: `docs/superpowers/specs/2026-10-23-maiors-design.md`.
+- Original brief: `multi-agent-intelligent-orchestration-routing-specification.md`. Design of record: `docs/superpowers/specs/2026-10-23-mad-design.md`.
 - The brief's `agy --file` doesn't exist (use `-i`), and its Gemini 1.5 model names are obsolete (current ids are Gemini 3.8 Flash and Gemini 4 Argon).
 - Greenfield repo. Python 3.14 + pytest, bats and shellcheck are available.
 

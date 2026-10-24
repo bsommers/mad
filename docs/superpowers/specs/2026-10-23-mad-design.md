@@ -1,12 +1,12 @@
 ---
-title: maiors design
+title: mad design
 keywords: [routing, orchestration, claude, agy, okf, telemetry, handoff]
 updated: 2026-10-23
 status: approved-for-planning
 supersedes_brief: multi-agent-intelligent-orchestration-routing-specification.md
 ---
 
-# maiors — Design
+# mad — Design
 
 This document turns the original brief into decisions an implementer can build from. Where the brief was
 ambiguous, stale or wrong about the installed tools, the correction is marked **[fix]**.
@@ -55,7 +55,7 @@ updated: 2026-10-23           # ISO date of the last meaningful edit
 ```
 
 The heading is `## <UTC ISO-8601 seconds, Z> · <kind> · <agent>`. `kind` is one of `task`, `transition`,
-`decision`, `handoff`, `note`, and `agent` is one of `claude`, `agy`, `human`, `maiors`. The body is `- key: value` lines
+`decision`, `handoff`, `note`, and `agent` is one of `claude`, `agy`, `human`, `mad`. The body is `- key: value` lines
 with values on a single line (newlines in values are replaced with spaces). Entries are separated by one blank line.
 The file is opened in append mode only.
 
@@ -93,7 +93,7 @@ agent        = override  if given
 | agy | agy_score == 0 (agy was picked only by override) | `gemini-3.8-flash-medium` |
 | agy | otherwise | `gemini-4-argon-high` |
 
-**Decision** (the output of `maiors route`, as JSON):
+**Decision** (the output of `mad route`, as JSON):
 `{"agent": "claude", "model": "sonnet", "reasons": ["kw:debug"], "scores": {"claude": 1, "agy": 0}}`.
 Reasons are `kw:<phrase>`, `files:<n>>5`, `override:agent`, `override:model` and `default`, in the order they were found.
 
@@ -103,18 +103,18 @@ A running CLI can't be switched by the router. Inside a session, the skills choo
 Claude's Agent tool `model` takes `haiku`/`sonnet`/`opus`, and agy's `--model` applies per `agy -p` call.
 Phase 2 skills state this policy, which is the same table as 4.2.
 
-## 5. Router CLI (`bin/maiors`)
+## 5. Router CLI (`bin/mad`)
 
 | Command | Behavior |
 |---|---|
-| `maiors init` | Creates `.active_context/` (with an INDEX.md stub) and `.global_dev_log.md` (with a header) if missing. Never overwrites. Prints what it created. |
-| `maiors route PROMPT [FILE...]` | Prints the Decision JSON and launches nothing. Exit 0. |
-| `maiors run [--agent A] [--model M] [--dry-run] PROMPT [FILE...]` | Routes, appends a `transition` log entry, then `exec`s the CLI. `--dry-run` prints the argv (shell-quoted) and skips both the exec and the log append. |
-| `maiors log --kind K --agent A [--field k=v]... MESSAGE` | Appends one entry (`task: MESSAGE` plus fields). |
-| `maiors handoff` | (Phase 2) `exec agy --model gemini-4-argon-high -i "$(cat .opengsd_handoff.md)"`. Exit 1 if the file is missing. |
-| `maiors check` | (Phase 3) Updates telemetry and prints `ok` or `handoff`. Exit 0 for ok, 10 for handoff. |
+| `mad init` | Creates `.active_context/` (with an INDEX.md stub) and `.global_dev_log.md` (with a header) if missing. Never overwrites. Prints what it created. |
+| `mad route PROMPT [FILE...]` | Prints the Decision JSON and launches nothing. Exit 0. |
+| `mad run [--agent A] [--model M] [--dry-run] PROMPT [FILE...]` | Routes, appends a `transition` log entry, then `exec`s the CLI. `--dry-run` prints the argv (shell-quoted) and skips both the exec and the log append. |
+| `mad log --kind K --agent A [--field k=v]... MESSAGE` | Appends one entry (`task: MESSAGE` plus fields). |
+| `mad handoff` | (Phase 2) `exec agy --model gemini-4-argon-high -i "$(cat .opengsd_handoff.md)"`. Exit 1 if the file is missing. |
+| `mad check` | (Phase 3) Updates telemetry and prints `ok` or `handoff`. Exit 0 for ok, 10 for handoff. |
 
-Binary paths come from `MAIORS_CLAUDE_BIN` and `MAIORS_AGY_BIN` (defaults `claude`, `agy`). The repo root is the
+Binary paths come from `MAD_CLAUDE_BIN` and `MAD_AGY_BIN` (defaults `claude`, `agy`). The repo root is the
 nearest ancestor of the current directory that contains `.global_dev_log.md` or `.git`. Usage errors exit 2.
 
 ## 6. Skills (Phase 2)
@@ -127,11 +127,11 @@ symlinks them into `~/.claude/skills/` and into the agy plugin dir. It changes t
   and decisions made since the last `handoff` log entry; (2) append a `handoff` entry; (3) write `.opengsd_handoff.md`
   (OKF) with exactly the sections `## Unresolved problem`, `## Next exact steps` (numbered), `## Context files to load`
   (paths in `.active_context/`), `## Verify with` (commands).
-- **context_fetcher**: `maiors fetch KEYWORD...` scores each `.active_context/*.md` by keyword overlap with its
+- **context_fetcher**: `mad fetch KEYWORD...` scores each `.active_context/*.md` by keyword overlap with its
   frontmatter `keywords` (2 points each) and title words (1 point each). It prints the paths with score > 0, highest first,
   stopping at `fetch_budget_bytes` (default 24000) of total file size. The skill tells the agent to read only those files.
-- **route_task**: before a large task, run `maiors check`. On `handoff`, run context_orchestrator, stop, and print
-  `maiors handoff` (or the raw `agy -i ...` line).
+- **route_task**: before a large task, run `mad check`. On `handoff`, run context_orchestrator, stop, and print
+  `mad handoff` (or the raw `agy -i ...` line).
 
 ## 7. Telemetry and limits (Phase 3)
 
@@ -150,7 +150,7 @@ symlinks them into `~/.claude/skills/` and into the agy plugin dir. It changes t
   brief's "~35 messages" with "80% capacity".
 - **agy:** `running` counts live `agy` processes. A run that fails with rate-limit text in stderr sets `last_rate_limit`.
   If `running >= max_concurrent`, or a rate limit happened within 15 minutes, `check` hands back to claude.
-- **Enforcement:** a project-level Claude Code `UserPromptSubmit` hook (`.claude/settings.json`) runs `maiors check`.
+- **Enforcement:** a project-level Claude Code `UserPromptSubmit` hook (`.claude/settings.json`) runs `mad check`.
   On exit 10 it injects the context_orchestrator instruction.
 
 ## 8. Out of scope
