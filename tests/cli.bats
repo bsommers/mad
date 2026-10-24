@@ -126,3 +126,34 @@ EOF
   [ "$status" -eq 10 ]
   [ "$output" = "handoff" ]
 }
+
+@test "install-skills.sh --dry-run lists symlinks and touches nothing" {
+  export MAD_CLAUDE_SKILLS_DIR="$BATS_TEST_TMPDIR/claude_skills"
+  export MAD_AGY_SKILLS_DIR="$BATS_TEST_TMPDIR/agy_skills"
+  run "$REPO/scripts/install-skills.sh" --dry-run
+  [ "$status" -eq 0 ]
+  [ ! -e "$MAD_CLAUDE_SKILLS_DIR" ]
+  [ ! -e "$MAD_AGY_SKILLS_DIR" ]
+  [[ "$output" == *"ln -sfn $REPO/skills/context_fetcher $MAD_CLAUDE_SKILLS_DIR/context_fetcher"* ]]
+  [[ "$output" == *"ln -sfn $REPO/skills/context_orchestrator $MAD_AGY_SKILLS_DIR/context_orchestrator"* ]]
+  [[ "$output" == *"ln -sfn $REPO/skills/route_task $MAD_AGY_SKILLS_DIR/route_task"* ]]
+}
+
+@test "install-skills.sh creates symlinks and refuses real directory collision" {
+  export MAD_CLAUDE_SKILLS_DIR="$BATS_TEST_TMPDIR/claude_skills"
+  export MAD_AGY_SKILLS_DIR="$BATS_TEST_TMPDIR/agy_skills"
+  run "$REPO/scripts/install-skills.sh"
+  [ "$status" -eq 0 ]
+  [ -L "$MAD_CLAUDE_SKILLS_DIR/context_fetcher" ]
+  [ -L "$MAD_CLAUDE_SKILLS_DIR/context_orchestrator" ]
+  [ -L "$MAD_CLAUDE_SKILLS_DIR/route_task" ]
+  [ -L "$MAD_AGY_SKILLS_DIR/context_fetcher" ]
+  [ -L "$MAD_AGY_SKILLS_DIR/context_orchestrator" ]
+  [ -L "$MAD_AGY_SKILLS_DIR/route_task" ]
+
+  # Replace one symlink with a real directory -> must fail with exit 1
+  rm "$MAD_CLAUDE_SKILLS_DIR/route_task"
+  mkdir -p "$MAD_CLAUDE_SKILLS_DIR/route_task"
+  run "$REPO/scripts/install-skills.sh"
+  [ "$status" -eq 1 ]
+}
