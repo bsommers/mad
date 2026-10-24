@@ -20,11 +20,11 @@ Milestone v1.0, Orchestration core. Details for every requirement are in `docs/s
 
 ### Context skills
 
-- [ ] **CTX-01**: `context_orchestrator` skill appends a `handoff` entry and writes `.opengsd_handoff.md` with the four sections in design §6
-- [ ] **CTX-02**: `mad fetch KEYWORD...` scores `.active_context/*.md` (keywords 2 points, title words 1 point), prints paths highest first within `fetch_budget_bytes`; `--reindex` regenerates `INDEX.md`. The `context_fetcher` skill wraps it
-- [ ] **CTX-03**: `route_task` skill runs `mad check`; on `handoff` it runs context_orchestrator, stops, and prints the handoff command
-- [ ] **CTX-04**: `mad handoff` execs agy with the handoff file as the initial prompt, and exits 1 when the file is missing
-- [ ] **CTX-05**: `scripts/install-skills.sh` symlinks the skills into `~/.claude/skills/` and the agy plugin dir; `--dry-run` lists the actions; it is never run by tests
+- [x] **CTX-01**: `context_orchestrator` skill appends a `handoff` entry and writes `.opengsd_handoff.md` with the four sections in design §6
+- [x] **CTX-02**: `mad fetch KEYWORD...` scores `.active_context/*.md` (keywords 2 points, title words 1 point), prints paths highest first within `fetch_budget_bytes`; `--reindex` regenerates `INDEX.md`. The `context_fetcher` skill wraps it
+- [x] **CTX-03**: `route_task` skill runs `mad check`; on `handoff` it runs context_orchestrator, stops, and prints the handoff command
+- [x] **CTX-04**: `mad handoff` execs agy with the handoff file as the initial prompt, and exits 1 when the file is missing
+- [x] **CTX-05**: `scripts/install-skills.sh` symlinks the skills into `~/.claude/skills/` and the agy plugin dir; `--dry-run` lists the actions; it is never run by tests
 
 ### Telemetry
 
@@ -52,11 +52,11 @@ Milestone v1.0, Orchestration core. Details for every requirement are in `docs/s
 | ROUTE-01 | Phase 1 | Complete |
 | ROUTE-02 | Phase 1 | Complete |
 | ROUTE-03 | Phase 1 | Complete |
-| CTX-01 | Phase 2 | Pending |
-| CTX-02 | Phase 2 | Pending |
-| CTX-03 | Phase 2 | Pending |
-| CTX-04 | Phase 2 | Pending |
-| CTX-05 | Phase 2 | Pending |
+| CTX-01 | Phase 2 | Complete |
+| CTX-02 | Phase 2 | Complete |
+| CTX-03 | Phase 2 | Complete |
+| CTX-04 | Phase 2 | Complete |
+| CTX-05 | Phase 2 | Complete |
 | TEL-01 | Phase 3 | Pending |
 | TEL-02 | Phase 3 | Pending |
 | TEL-03 | Phase 3 | Pending |
