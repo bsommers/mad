@@ -39,6 +39,10 @@ def _index_header(today_str: str) -> str:
     )
 
 
+def utc_iso(dt: datetime | None = None) -> str:
+    return (dt or datetime.now(UTC)).astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def init_store(root: Path, today: date | None = None) -> list[Path]:
     today_str = (today or datetime.now(UTC).date()).isoformat()
     created: list[Path] = []
@@ -69,7 +73,7 @@ def append_log(root: Path, kind: str, agent: str, fields: dict[str, str],
         raise ValueError(f"unknown agent: {agent}")
 
     init_store(root)
-    ts = (now or datetime.now(UTC)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    ts = utc_iso(now)
     lines = [f"\n## {ts} · {kind} · {agent}\n"]
     for k, v in fields.items():
         flat_v = re.sub(r"[\r\n]+", " ", str(v))

@@ -156,3 +156,20 @@ def test_atomic_write_preserves_valid_json_on_interrupted_replace(tmp_path: Path
     assert json.loads(target.read_text(encoding="utf-8")) == initial
     leftover_tmps = [p for p in tmp_path.iterdir() if p != target]
     assert leftover_tmps == []
+
+
+def test_check_limits_handles_empty_or_invalid_agy_running(tmp_path: Path) -> None:
+    now = datetime(2026, 10, 23, 15, 0, 0, tzinfo=timezone.utc)
+    transcripts = tmp_path / "empty_projects"
+
+    # Corrupt/null running in existing telemetry file + empty MAD_AGY_RUNNING="" -> defaults to 0
+    write_telemetry_atomic(tmp_path, {"version": 1, "agy": {"running": None}})
+    should_handoff, data = check_limits(
+        tmp_path, transcripts_dir=transcripts, env={"MAD_AGY_RUNNING": "  "}, now=now
+    )
+    assert should_handoff is False
+    assert data["agy"]["running"] == 0
+
+    # Non-integer MAD_AGY_RUNNING raises clear ValueError
+    with pytest.raises(ValueError, match="invalid MAD_AGY_RUNNING"):
+        check_limits(tmp_path, transcripts_dir=transcripts, env={"MAD_AGY_RUNNING": "abc"}, now=now)

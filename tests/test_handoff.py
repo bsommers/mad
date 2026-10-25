@@ -56,3 +56,38 @@ def test_validate_handoff_malformed_sections(tmp_path):
 def test_build_handoff_command():
     cmd = build_handoff_command("handoff body", "gemini-4-argon-high", {"MAD_AGY_BIN": "/tmp/agy_stub"})
     assert cmd == ["/tmp/agy_stub", "--model", "gemini-4-argon-high", "-i", "handoff body"]
+
+
+def test_write_handoff_does_not_pollute_log_on_write_failure_and_flattens_newlines(tmp_path, monkeypatch):
+    # Invalid agent rejected before touching anything
+    with pytest.raises(ValueError, match="unknown agent"):
+        write_handoff(tmp_path, agent="bad_agent", problem="p", steps=["s"])
+    assert not (tmp_path / ".global_dev_log.md").exists()
+
+    # Simulated failure during atomic replace leaves .global_dev_log.md untouched
+    def _boom(src, dst):
+        raise OSError("disk full")
+
+    monkeypatch.setattr("mad.handoff.os.replace", _boom)
+    with pytest.raises(OSError, match="disk full"):
+        write_handoff(tmp_path, agent="claude", problem="p", steps=["s"])
+    assert not (tmp_path / ".global_dev_log.md").exists()
+    assert not (tmp_path / ".opengsd_handoff.md").exists()
+
+
+def test_validate_handoff_requires_line_anchored_headings_after_frontmatter(tmp_path):
+    inline = tmp_path / ".opengsd_handoff.md"
+    inline.write_text(
+        "---\n"
+        "title: ## Unresolved problem\n"
+        "keywords: [handoff]\n"
+        "updated: 2026-10-23\n"
+        "---\n\n"
+        "prose mentioning ## Unresolved problem inline\n"
+        "## Next exact steps\n1. a\n"
+        "## Context files to load\n- (none)\n"
+        "## Verify with\n- pytest -q\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="malformed handoff file"):
+        validate_handoff(inline)

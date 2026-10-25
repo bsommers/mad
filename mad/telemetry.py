@@ -9,10 +9,7 @@ import tempfile
 from typing import Any
 
 from mad.route import load_config
-
-
-def _utc_iso(dt: datetime) -> str:
-    return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+from mad.store import utc_iso
 
 
 def _parse_iso_utc(raw: Any) -> datetime | None:
@@ -61,27 +58,29 @@ def count_claude_messages(
     timestamps: list[datetime] = []
     for path in sorted(transcripts_dir.rglob("*.jsonl")):
         try:
-            text = path.read_text(encoding="utf-8", errors="replace")
+            with path.open("r", encoding="utf-8", errors="replace") as fh:
+                for raw_line in fh:
+                    if '"user"' not in raw_line:
+                        continue
+                    line = raw_line.strip()
+                    if not line:
+                        continue
+                    try:
+                        obj = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    if not isinstance(obj, dict) or not _is_user_prompt_entry(obj):
+                        continue
+                    ts = _parse_iso_utc(obj.get("timestamp"))
+                    if ts is not None and cutoff <= ts <= current:
+                        timestamps.append(ts)
         except OSError:
             continue
-        for line in text.splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                obj = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if not isinstance(obj, dict) or not _is_user_prompt_entry(obj):
-                continue
-            ts = _parse_iso_utc(obj.get("timestamp"))
-            if ts is not None and cutoff <= ts <= current:
-                timestamps.append(ts)
 
     if not timestamps:
         return 0, None
     oldest = min(timestamps)
-    return len(timestamps), _utc_iso(oldest)
+    return len(timestamps), utc_iso(oldest)
 
 
 def read_telemetry(root: Path) -> dict[str, Any]:
@@ -145,17 +144,22 @@ def check_limits(
     prev = read_telemetry(root)
     prev_agy = prev.get("agy") if isinstance(prev.get("agy"), dict) else {}
 
-    running = int(prev_agy.get("running", 0))
-    if "MAD_AGY_RUNNING" in environ:
-        running = int(environ["MAD_AGY_RUNNING"])
+    raw_prev_running = prev_agy.get("running", 0)
+    running = int(raw_prev_running) if isinstance(raw_prev_running, (int, float)) else 0
+    env_running = environ.get("MAD_AGY_RUNNING", "").strip()
+    if env_running:
+        try:
+            running = int(env_running)
+        except ValueError as exc:
+            raise ValueError(f"invalid MAD_AGY_RUNNING: {env_running}") from exc
 
     last_rate_limit: str | None = prev_agy.get("last_rate_limit")
     if record_rate_limit:
-        last_rate_limit = _utc_iso(current)
+        last_rate_limit = utc_iso(current)
 
     data: dict[str, Any] = {
         "version": 1,
-        "updated": _utc_iso(current),
+        "updated": utc_iso(current),
         "claude": {
             "window_hours": int(window_hours) if window_hours.is_integer() else window_hours,
             "window_message_budget": budget,

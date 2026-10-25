@@ -1,9 +1,12 @@
 """State handoff artifact (.opengsd_handoff.md) writer, validator, and launcher."""
 from collections.abc import Mapping, Sequence
 from datetime import UTC, date, datetime
+import os
 from pathlib import Path
+import re
+import tempfile
 
-from mad.store import append_log
+from mad.store import VALID_AGENTS, append_log
 
 REQUIRED_SECTIONS = (
     "## Unresolved problem",
@@ -11,6 +14,10 @@ REQUIRED_SECTIONS = (
     "## Context files to load",
     "## Verify with",
 )
+
+
+def _flatten(text: str) -> str:
+    return re.sub(r"[\r\n]+", " ", text.strip())
 
 
 def write_handoff(
@@ -24,9 +31,11 @@ def write_handoff(
     today: date | None = None,
     now: datetime | None = None,
 ) -> Path:
+    if agent not in VALID_AGENTS:
+        raise ValueError(f"unknown agent: {agent}")
     if not problem or not problem.strip():
         raise ValueError("handoff problem cannot be empty")
-    clean_steps = [s.strip() for s in steps if s and s.strip()]
+    clean_steps = [_flatten(s) for s in steps if s and s.strip()]
     if not clean_steps:
         raise ValueError("handoff requires at least one step")
 
@@ -34,16 +43,10 @@ def write_handoff(
     target = handoff_path if handoff_path is not None else (root / ".opengsd_handoff.md")
 
     steps_block = "".join(f"{idx}. {step}\n" for idx, step in enumerate(clean_steps, start=1))
-    ctx_block = (
-        "".join(f"- {c.strip()}\n" for c in context_files if c.strip())
-        if context_files
-        else "- (none)\n"
-    )
-    verify_block = (
-        "".join(f"- {v.strip()}\n" for v in verify_cmds if v.strip())
-        if verify_cmds
-        else "- pytest -q\n"
-    )
+    clean_ctx = [_flatten(c) for c in context_files if c and c.strip()]
+    ctx_block = "".join(f"- {c}\n" for c in clean_ctx) if clean_ctx else "- (none)\n"
+    clean_verify = [_flatten(v) for v in verify_cmds if v and v.strip()]
+    verify_block = "".join(f"- {v}\n" for v in clean_verify) if clean_verify else "- pytest -q\n"
 
     body = (
         "---\n"
@@ -62,18 +65,30 @@ def write_handoff(
         f"{verify_block}"
     )
 
+    target.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(dir=target.parent, prefix=".opengsd_handoff.", suffix=".tmp")
+    tmp_path = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(body)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp_path, target)
+    except BaseException:
+        tmp_path.unlink(missing_ok=True)
+        raise
+
     append_log(
         root,
         "handoff",
         agent,
         {
-            "task": problem.strip(),
+            "task": _flatten(problem),
             "next": "; ".join(clean_steps),
             "file": str(target.relative_to(root) if target.is_relative_to(root) else target),
         },
         now=now,
     )
-    target.write_text(body, encoding="utf-8")
     return target
 
 
@@ -83,15 +98,19 @@ def validate_handoff(path: Path) -> str:
     content = path.read_text(encoding="utf-8")
     if not content.strip():
         raise ValueError(f"handoff file not found: {path}")
-    if not content.startswith("---\n") or "\n---" not in content[4:]:
+    if not content.startswith("---\n"):
+        raise ValueError(f"malformed handoff file (missing OKF frontmatter): {path}")
+    fm_end = content.find("\n---", 4)
+    if fm_end == -1:
         raise ValueError(f"malformed handoff file (missing OKF frontmatter): {path}")
 
+    body = content[fm_end + 4 :]
     pos = 0
     for sec in REQUIRED_SECTIONS:
-        idx = content.find(sec, pos)
-        if idx == -1:
+        match = re.search(rf"(?m)^{re.escape(sec)}\s*$", body[pos:])
+        if match is None:
             raise ValueError(f"malformed handoff file (missing section '{sec}'): {path}")
-        pos = idx + len(sec)
+        pos += match.end()
     return content
 
 

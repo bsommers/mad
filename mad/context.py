@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from datetime import UTC, date, datetime
 from pathlib import Path
 
-from mad.store import init_store
+from mad.store import _index_header, init_store
 
 
 def _tokenize(text: str) -> set[str]:
@@ -79,15 +79,7 @@ def reindex_context(root: Path, today: date | None = None) -> Path:
     index_path = ctx_dir / "INDEX.md"
 
     topics = sorted(p for p in ctx_dir.glob("*.md") if p.name != "INDEX.md")
-    lines = [
-        "---\n",
-        "title: Active context index\n",
-        "keywords: [index]\n",
-        f"updated: {today_str}\n",
-        "---\n\n",
-        "# Active context\n\n",
-        "One topic per file. Regenerate this index with mad fetch --reindex.\n\n",
-    ]
+    lines = [_index_header(today_str), "\n"]
     if not topics:
         lines.append("(no topics yet)\n")
     else:
