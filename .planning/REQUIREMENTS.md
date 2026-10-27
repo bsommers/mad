@@ -33,12 +33,20 @@ Milestone v1.0, Orchestration core. Details for every requirement are in `docs/s
 - [x] **TEL-03**: `mad check` exits 10 (`handoff`) at `ceil(budget × ratio)` claude messages, or when agy is at `max_concurrent` or was rate-limited within 15 min; otherwise exits 0 (`ok`)
 - [x] **TEL-04**: A project `.claude/settings.json` `UserPromptSubmit` hook runs `mad check` and, on exit 10, injects the context_orchestrator instruction
 
+## Planned (v1.1, not started)
+
+- [ ] **BACK-01**: A `StateBackend` protocol (`mad/backend.py`) fronts append_log, write_handoff, fetch_context and telemetry read/write; `FilesBackend` reproduces today's output byte-for-byte
+- [ ] **BACK-02**: `MAD_STATE_BACKEND` (`files` default | `mads`) selects the backend; an unknown value exits 2
+- [ ] **BACK-03**: `mad/mads_client.py` (stdlib `subprocess` + `json`, no `shell=True`) calls the `mads` CLI and maps its closed error set; `STORE_BUSY` retries up to 3 times
+- [ ] **BACK-04**: If `mads` is selected but absent, mad falls back to `files` and logs one `note` entry; routing decisions are identical in both modes
+- [ ] **BACK-05**: `AGENTS.md` is amended so SQLite may exist only inside the separate `mads` binary; exported `.opengsd_handoff.md` equals the files-backend output
+
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
 | API keys / HTTP APIs | Subscription limits only (brief §1) |
-| SQLite / Redis | Markdown is native to agents (brief §2) |
+| SQLite / Redis | Markdown is native to agents (brief §2). Phase 4 (planned) permits SQLite only inside the separate `mads` binary, never in mad's own code |
 | Live model switching | No CLI supports it; subagent tiers cover it |
 | Exact quota readout | No source exists; estimate instead |
 | Editing plugin-owned skills | They belong to plugins; supersede instead |
@@ -62,4 +70,10 @@ Milestone v1.0, Orchestration core. Details for every requirement are in `docs/s
 | TEL-03 | Phase 3 | Complete |
 | TEL-04 | Phase 3 | Complete |
 
-**Coverage:** 14 v1 requirements, 14 mapped, 0 unmapped.
+| BACK-01 | Phase 4 | Pending |
+| BACK-02 | Phase 4 | Pending |
+| BACK-03 | Phase 4 | Pending |
+| BACK-04 | Phase 4 | Pending |
+| BACK-05 | Phase 4 | Pending |
+
+**Coverage:** 14 v1 requirements, 14 mapped, 0 unmapped. 5 planned v1.1 requirements, 5 mapped.
