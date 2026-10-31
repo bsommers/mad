@@ -11,7 +11,24 @@ and the right model inside it. It shares state between the two CLIs as plain Mar
 
 - **In scope:** a router CLI (`bin/mad`), the Markdown state store (`.global_dev_log.md`, `.active_context/`),
   three skills (`context_orchestrator`, `context_fetcher`, `route_task`), and limit telemetry (`.agent_telemetry.json`).
-- **Out of scope:** API keys or direct API calls (subscriptions only), SQLite or Redis, and any GUI.
+- **Out of scope:** API keys or direct API calls (subscriptions only), Redis, any GUI, and any
+  database access from mad's own code. (SQLite is allowed only inside the separate `mads`
+  binary; mad reaches it through `mads --json` and never opens the database.)
+
+## State backends
+
+mad keeps shared state in one of two backends, chosen by `MAD_STATE_BACKEND`
+(`files` default | `mads`) or `"state_backend"` in `config/routing.json`:
+
+- `files`: the controlled Markdown/JSON files (`.global_dev_log.md`, `.active_context/`,
+  `.opengsd_handoff.md`, `.agent_telemetry.json`). Authoritative. Stdlib only. Default.
+- `mads`: the `mads` store is authoritative; the same files are regenerated projections
+  (`mads export`) so `agy -i "$(cat .opengsd_handoff.md)"` keeps working.
+
+Invariants that hold for both: `.global_dev_log.md` stays append-only in effect; every state
+file is OKF Markdown with frontmatter; `route.classify` stays pure; no API keys; `mad/` runtime
+imports only the standard library (`mads_client.py` uses `subprocess` and `json`).
+If `mads` is selected but not on `PATH`, mad falls back to `files` and writes one `note` log entry.
 
 Source of intent: `multi-agent-intelligent-orchestration-routing-specification.md` (the original brief).
 The design of record is `docs/superpowers/specs/2026-10-23-mad-design.md`. Where the two differ, the design wins.
@@ -46,6 +63,10 @@ mad/               Python package, stdlib only
   context.py          fetch_context(), reindex_context()  (.active_context/ scoring & INDEX.md)
   handoff.py          write_handoff(), validate_handoff(), build_handoff_command()  (.opengsd_handoff.md)
   telemetry.py        count_claude_messages(), write_telemetry_atomic(), check_limits()  (.agent_telemetry.json)
+  backend.py          StateBackend protocol and get_backend() selector (files | mads)
+  files_backend.py    FilesBackend wrapper over store / handoff / context / telemetry
+  mads_client.py      subprocess JSON-over-CLI client for mads (mads.contract/1)
+  mads_backend.py     MadsBackend with STORE_BUSY retry and graceful fallback to files
   cli.py              argparse front end for init / route / run / log / fetch / handoff / check
 config/routing.json   keywords, file-count threshold, model ids, fetch budget, telemetry thresholds
 skills/<name>/SKILL.md  Phase 2 skills (context_orchestrator, context_fetcher, route_task)

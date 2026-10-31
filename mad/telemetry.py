@@ -120,6 +120,7 @@ def check_limits(
     record_rate_limit: bool = False,
     env: Mapping[str, str] | None = None,
     now: datetime | None = None,
+    backend: Any | None = None,
 ) -> tuple[bool, dict[str, Any]]:
     """Update `.agent_telemetry.json` and return `(should_handoff, telemetry_dict)`."""
     environ = env if env is not None else os.environ
@@ -141,7 +142,7 @@ def check_limits(
         transcripts_dir, window_hours=window_hours, now=current
     )
 
-    prev = read_telemetry(root)
+    prev = backend.read_telemetry() if backend is not None else read_telemetry(root)
     prev_agy = prev.get("agy") if isinstance(prev.get("agy"), dict) else {}
 
     raw_prev_running = prev_agy.get("running", 0)
@@ -173,7 +174,10 @@ def check_limits(
             "last_rate_limit": last_rate_limit,
         },
     }
-    write_telemetry_atomic(root, data)
+    if backend is not None:
+        backend.write_telemetry(data)
+    else:
+        write_telemetry_atomic(root, data)
 
     threshold = math.ceil(budget * ratio)
     rate_limited_recently = False

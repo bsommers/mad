@@ -20,10 +20,11 @@ and the global log shows how the task got there.
 - [x] Router: agent choice, model choice, launch with dry-run (ROUTE-01..03) — Validated in Phase 1: Foundation
 - [x] Skills: context_orchestrator, context_fetcher, route_task, `mad handoff`, skill install (CTX-01..05) — Validated in Phase 2: Context skills
 - [x] Telemetry and limit enforcement with a Claude Code hook (TEL-01..04) — Validated in Phase 3: Telemetry & limits
+- [x] Pluggable state backend (`files` default or `mads` CLI store behind `StateBackend` protocol, BACK-01..05) — Validated in Phase 4: Pluggable state backend
 
 ### Active
 
-<!-- Milestone v1.0: Orchestration core (brief Phases 1-3) complete. -->
+<!-- Milestones v1.0 (Orchestration core) and v1.1 (Pluggable state backend) complete. -->
 
 ### Out of Scope
 
@@ -53,7 +54,8 @@ and the global log shows how the task got there.
 | Milestone v1.0 = brief Phases 1-3 | User choice 2026-10-23 | — Pending |
 | Bash + stdlib Python | User choice 2026-10-23 | — Pending |
 | Ties and no-signal prompts route to claude | Cheaper, faster loop; the brief puts only heavy work on agy | — Pending |
-| Claude usage estimated from local transcripts, threshold ceil(45 × 0.8) = 36 | No usage API; reconciles the brief's "~35 messages" and "80%" | — Pending |
+| Claude usage estimated from local transcripts, threshold ceil(45 × 0.8) = 36 | No usage API; reconciles the brief's "~35 messages" and "80%" | ✓ Shipped |
+| Pluggable `StateBackend` (`files` default in `config/routing.json`, `mads` via subprocess JSON-over-CLI, telemetry on files mirrored to `mads`) | Preserves stdlib-only invariant and legacy file projections while enabling shared `mads` coordination | ✓ Shipped |
 
 ---
-*Last updated: 2026-10-23 after onboarding*
+*Last updated: 2026-10-30 after Phase 4 completion*

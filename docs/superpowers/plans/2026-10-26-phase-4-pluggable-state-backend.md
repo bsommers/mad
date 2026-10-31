@@ -1,8 +1,8 @@
 # Phase 4: Pluggable State Backend Implementation Plan
 
-> **Status: DRAFT, for later consideration. Do not start without the user's go-ahead** (`config.json` is `interactive`, `auto_advance` false). Depends on the `mads` store (`~/src/meso/mads/SPEC.md`) reaching its Task 10 (CLI verbs stable). Phase 4 must also be safe to ship with `mads` never built: the `files` backend is the default and is today's behavior.
+> **Status: COMPLETE (2026-10-30).** Approved and executed via TDD against both the stateful stub (`tests/stubs/mads_stub.py`) and the real `mads` binary (`~/src/meso/mads/target/release/mads`).
 >
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Let mad keep its shared state either in the current controlled Markdown/JSON files (default, unchanged) or in the `mads` embedded store, selected by one setting, with the same CLI behavior and exit codes either way.
 
@@ -86,9 +86,9 @@ mad's exit code `1` with the message on stderr.
 - Modify: `mad/cli.py` (route calls through `get_backend`)
 - Test: `tests/test_backend_files.py`
 
-- [ ] Write failing tests: `FilesBackend.append_log` output equals `store.append_log` for the same inputs; `write_handoff` file equals `handoff.write_handoff` output; unknown `MAD_STATE_BACKEND` value exits `2`.
-- [ ] Implement `FilesBackend` as thin call-throughs; wire `cli.py`.
-- [ ] Verify: `pytest -q` → all pre-existing tests plus new ones pass; `bats tests/cli.bats` → unchanged pass count.
+- [x] Write failing tests: `FilesBackend.append_log` output equals `store.append_log` for the same inputs; `write_handoff` file equals `handoff.write_handoff` output; unknown `MAD_STATE_BACKEND` value exits `2`.
+- [x] Implement `FilesBackend` as thin call-throughs; wire `cli.py`.
+- [x] Verify: `pytest -q` → all pre-existing tests plus new ones pass; `bats tests/cli.bats` → unchanged pass count.
 
 ### Task 2: Backend contract test suite
 
@@ -96,17 +96,17 @@ mad's exit code `1` with the message on stderr.
 - Create: `tests/backend_contract.py` (shared checks), `tests/test_backend_contract.py`
 - Test: parametrized over `FilesBackend` now, `MadsBackend` in Task 4.
 
-- [ ] Write the shared contract: append-only log growth, handoff validation (empty problem or zero steps raises `ValueError`), context never exceeds `budget_bytes`, telemetry round-trip.
-- [ ] Verify: `pytest tests/test_backend_contract.py -q` → pass for `FilesBackend`.
+- [x] Write the shared contract: append-only log growth, handoff validation (empty problem or zero steps raises `ValueError`), context never exceeds `budget_bytes`, telemetry round-trip.
+- [x] Verify: `pytest tests/test_backend_contract.py -q` → pass for `FilesBackend`.
 
 ### Task 3: `mads_client` over `subprocess`
 
 **Files:**
 - Create: `mad/mads_client.py` (≤150 lines), `tests/stubs/mads_stub.py`, `tests/test_mads_client.py`
 
-- [ ] Write failing tests with `MADS_BIN` pointing at the stub: success envelope parsed; each error code raises `MadsError` with the right `retryable`; non-JSON stdout or non-zero exit with no envelope raises `MadsError("INTERNAL")`; timeout (default 10 s, `MADS_TIMEOUT_S`) raises.
-- [ ] Implement `call(verb, payload) -> dict` (argv list, never `shell=True`; payload via stdin).
-- [ ] Verify: `pytest tests/test_mads_client.py -q`; `shellcheck` unaffected.
+- [x] Write failing tests with `MADS_BIN` pointing at the stub: success envelope parsed; each error code raises `MadsError` with the right `retryable`; non-JSON stdout or non-zero exit with no envelope raises `MadsError("INTERNAL")`; timeout (default 10 s, `MADS_TIMEOUT_S`) raises.
+- [x] Implement `call(verb, payload) -> dict` (argv list, never `shell=True`; payload via stdin).
+- [x] Verify: `pytest tests/test_mads_client.py -q`; `shellcheck` unaffected.
 
 ### Task 4: `MadsBackend` and degradation
 
@@ -114,9 +114,9 @@ mad's exit code `1` with the message on stderr.
 - Create: `mad/mads_backend.py`
 - Modify: `mad/backend.py` (`get_backend` selection and fallback), `tests/test_backend_contract.py`
 
-- [ ] Write failing tests: `MadsBackend` passes the shared contract against the stub; when `mads` is absent, `get_backend` returns `FilesBackend` and exactly one `note` entry is appended per process; a stub that returns `STORE_BUSY` twice then OK succeeds (retry); `NOT_FOUND` on context fetch yields empty context, not a crash.
-- [ ] Implement; keep all `mads` verbs behind this class.
-- [ ] Verify: `pytest -q`; `bats tests/cli.bats` with `MAD_STATE_BACKEND=mads MADS_BIN=<stub>` and with it unset → both pass.
+- [x] Write failing tests: `MadsBackend` passes the shared contract against the stub; when `mads` is absent, `get_backend` returns `FilesBackend` and exactly one `note` entry is appended per process; a stub that returns `STORE_BUSY` twice then OK succeeds (retry); `NOT_FOUND` on context fetch yields empty context, not a crash.
+- [x] Implement; keep all `mads` verbs behind this class.
+- [x] Verify: `pytest -q`; `bats tests/cli.bats` with `MAD_STATE_BACKEND=mads MADS_BIN=<stub>` and with it unset → both pass.
 
 ### Task 5: Real-binary integration, projections, AGENTS.md amendment
 
@@ -124,9 +124,9 @@ mad's exit code `1` with the message on stderr.
 - Modify: `AGENTS.md` (apply the amendment above), `CLAUDE.md`/`GEMINI.md` untouched (they point to AGENTS.md)
 - Create: `tests/test_mads_integration.py` (skipped unless `MADS_BIN` is a real binary), `docs/user-guide/state-backends.md`
 
-- [ ] Write integration test: `init`, `log`, `handoff --write`, `fetch`, `check` against a temp project in `mads` mode; assert the exported `.opengsd_handoff.md` equals `FilesBackend` output for the same inputs (modulo the `updated:` date) and that the handoff validates with `validate_handoff`.
-- [ ] Apply the AGENTS.md amendment; write the user-guide page (when to choose each backend, how to switch, how to migrate with `mads import --from mad`, how to roll back by setting `files`).
-- [ ] Verify: full suite `pytest -q && bats tests/cli.bats && shellcheck bin/mad scripts/*.sh`; integration test run once manually with the real `mads` and the result noted in `04-01-SUMMARY.md`.
+- [x] Write integration test: `init`, `log`, `handoff --write`, `fetch`, `check` against a temp project in `mads` mode; assert the exported `.opengsd_handoff.md` equals `FilesBackend` output for the same inputs (modulo the `updated:` date) and that the handoff validates with `validate_handoff`.
+- [x] Apply the AGENTS.md amendment; write the user-guide page (when to choose each backend, how to switch, how to migrate with `mads import --from mad`, how to roll back by setting `files`).
+- [x] Verify: full suite `pytest -q && bats tests/cli.bats && shellcheck bin/mad scripts/*.sh`; integration test run once manually with the real `mads` and the result noted in `04-01-SUMMARY.md`.
 
 ## Threat & Failure Model
 

@@ -1,7 +1,7 @@
 # Phase 4: Pluggable state backend - Context
 
-**Gathered:** 2026-10-26
-**Status:** Draft, not ready for planning (awaiting user go-ahead and the mads store's Task 10)
+**Gathered:** 2026-10-26 (approved 2026-10-30)
+**Status:** Approved for execution
 
 <domain>
 ## Phase Boundary
@@ -11,16 +11,13 @@ Let mad keep shared state either in the controlled files (today, default) or in 
 </domain>
 
 <decisions>
-## Decisions (owner, 2026-10-26)
+## Decisions (owner, 2026-10-26 / 2026-10-30)
 
-- **D-01:** The "no SQLite or Redis" invariant is amended, not dropped: SQLite may exist only inside the separate `mads` binary, reached through `mads --json`. Amendment text is in the step plan; apply it in its Task 5.
+- **D-01:** The "no SQLite or Redis" invariant is amended, not dropped: SQLite may exist only inside the separate `mads` binary, reached through `mads` JSON-over-CLI. Amendment text is in the step plan; apply it in its Task 5.
 - **D-02:** `files` stays the default and stays authoritative unless `mads` is selected. In `mads` mode the Markdown/JSON files are regenerated projections so `agy -i "$(cat .opengsd_handoff.md)"` keeps working.
 - **D-03:** One mads DB per project, at the main-worktree root. Agent identity is open strings checked against a roster table.
-
-## Open items to settle at approval
-
-- `state_backend` in `config/routing.json` (default) or a new `config/state.json`
-- Whether telemetry moves at all (default: stays on `files`, mirrored into `mads`)
+- **D-04 (2026-10-30):** Keep `"state_backend": "files"` in `config/routing.json` (single config file, overridden by `MAD_STATE_BACKEND`).
+- **D-05 (2026-10-30):** Keep `.agent_telemetry.json` on `files` in both modes and mirror it into `mads` (`put_artifact` with kind `telemetry`, key `mad/agent_telemetry`) when `mads` is active.
 
 ## Canonical references
 

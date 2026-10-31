@@ -5,11 +5,12 @@ import shlex
 import sys
 from pathlib import Path
 
-from mad.context import fetch_context, reindex_context
-from mad.handoff import build_handoff_command, validate_handoff, write_handoff
+from mad.backend import BackendUsageError, get_backend
+from mad.context import reindex_context
+from mad.handoff import build_handoff_command, validate_handoff
 from mad.launch import build_command, exec_command
 from mad.route import classify, load_config
-from mad.store import append_log, find_root, init_store
+from mad.store import find_root, init_store
 from mad.telemetry import check_limits
 
 
@@ -68,6 +69,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if ns.cmd == "init":
+            get_backend(root, os.environ)
             created = init_store(root)
             if not created:
                 print("nothing to do")
@@ -89,8 +91,8 @@ def main(argv: list[str] | None = None) -> int:
             if ns.dry_run:
                 print(shlex.join(cmd))
                 return 0
-            append_log(
-                root,
+            backend = get_backend(root, os.environ)
+            backend.append_log(
                 "transition",
                 decision.agent,
                 {
@@ -110,7 +112,8 @@ def main(argv: list[str] | None = None) -> int:
                 if not k:
                     parser.error(f"invalid --field (empty key): {item}")
                 fields[k] = v
-            append_log(root, ns.kind, ns.agent, fields)
+            backend = get_backend(root, os.environ)
+            backend.append_log(ns.kind, ns.agent, fields)
             return 0
 
         if ns.cmd == "fetch":
@@ -123,8 +126,10 @@ def main(argv: list[str] | None = None) -> int:
                     return 0
             cfg = load_config()
             budget = ns.budget if ns.budget is not None else int(cfg.get("fetch_budget_bytes", 24000))
-            for p in fetch_context(root, ns.keywords, budget_bytes=budget):
-                print(p.relative_to(root))
+            backend = get_backend(root, os.environ)
+            out_text = backend.fetch_context(ns.keywords, budget)
+            if out_text:
+                print(out_text)
             return 0
 
         if ns.cmd == "handoff":
@@ -132,14 +137,13 @@ def main(argv: list[str] | None = None) -> int:
             if ns.write:
                 if not ns.agent or not ns.problem or not ns.step:
                     parser.error("handoff --write requires --agent, --problem, and at least one --step")
-                out = write_handoff(
-                    root,
+                backend = get_backend(root, os.environ, handoff_path=hpath)
+                out = backend.write_handoff(
                     agent=ns.agent,
                     problem=ns.problem,
                     steps=ns.step,
                     context_files=ns.context,
                     verify_cmds=ns.verify,
-                    handoff_path=hpath,
                 )
                 print(out.relative_to(root) if out.is_relative_to(root) else out)
                 return 0
@@ -156,12 +160,14 @@ def main(argv: list[str] | None = None) -> int:
         if ns.cmd == "check":
             cfg = load_config()
             tdir = Path(ns.transcripts_dir) if ns.transcripts_dir else None
+            backend = get_backend(root, os.environ)
             should_handoff, _ = check_limits(
                 root,
                 cfg=cfg,
                 transcripts_dir=tdir,
                 record_rate_limit=ns.record_rate_limit,
                 env=os.environ,
+                backend=backend,
             )
             if should_handoff:
                 print("handoff")
@@ -169,6 +175,9 @@ def main(argv: list[str] | None = None) -> int:
             print("ok")
             return 0
 
+    except BackendUsageError as exc:
+        print(f"mad: {exc}", file=sys.stderr)
+        return 2
     except ValueError as exc:
         print(f"mad: {exc}", file=sys.stderr)
         return 1

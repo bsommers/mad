@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 Orchestration core** - Phases 1-3 (completed 2026-10-23)
-- 📋 **v1.1 Pluggable state backend** - Phase 4 (planned, awaiting go-ahead)
+- ✅ **v1.1 Pluggable state backend** - Phase 4 (completed 2026-10-30)
 
 ## Overview
 
@@ -18,7 +18,7 @@ Milestone v1.0 builds the brief's three phases in order:
 - [x] **Phase 1: Foundation** - Markdown store and router CLI (completed 2026-10-23)
 - [x] **Phase 2: Context skills** - context_orchestrator, context_fetcher, route_task, handoff (completed 2026-10-23)
 - [x] **Phase 3: Telemetry & limits** - usage estimate, `mad check`, Claude Code hook (completed 2026-10-23)
-- [ ] **Phase 4: Pluggable state backend** - `files` (default) or `mads` store behind one protocol (planned, depends on the mads store reaching its Task 10)
+- [x] **Phase 4: Pluggable state backend** - `files` (default) or `mads` store behind one protocol (completed 2026-10-30)
 
 ## Phase Details
 
@@ -81,7 +81,7 @@ Plans:
 **Goal**: mad keeps shared state in the controlled files (default, unchanged) or in the `mads` embedded store, chosen by one setting, with identical CLI behavior and exit codes
 **Depends on**: Phase 3; external: `~/src/meso/mads` Task 10 (stable CLI verbs). Ships safely without `mads` built, since `files` stays the default
 **Requirements**: BACK-01, BACK-02, BACK-03, BACK-04, BACK-05
-**Status**: Draft plan only. Do not start without the user's go-ahead (`auto_advance` is false)
+**Status**: Complete (2026-10-30)
 **Success Criteria** (what must be TRUE):
 
   1. With `MAD_STATE_BACKEND` unset, all existing `pytest -q` and `bats tests/cli.bats` tests pass with no assertion edits
@@ -90,11 +90,11 @@ Plans:
   4. `route` output is identical in both modes
   5. The handoff exported from `mads` equals the files-backend `.opengsd_handoff.md` modulo the `updated:` date
 
-**Plans**: 0/1 plans complete
+**Plans**: 1/1 plans complete
 
 Plans:
 
-- [ ] 04-01-PLAN.md — backend protocol, FilesBackend, mads_client, MadsBackend, AGENTS.md amendment (steps in docs/superpowers/plans/2026-10-26-phase-4-pluggable-state-backend.md)
+- [x] 04-01-PLAN.md — backend protocol, FilesBackend, mads_client, MadsBackend, AGENTS.md amendment (steps in docs/superpowers/plans/2026-10-26-phase-4-pluggable-state-backend.md)
 
 ## Progress
 
@@ -103,4 +103,4 @@ Plans:
 | 1. Foundation | v1.0 | 1/1 | Complete    | 2026-10-23 |
 | 2. Context skills | v1.0 | 1/1 | Complete    | 2026-10-23 |
 | 3. Telemetry & limits | v1.0 | 1/1 | Complete    | 2026-10-23 |
-| 4. Pluggable state backend | v1.1 | 0/1 | Planned | - |
+| 4. Pluggable state backend | v1.1 | 1/1 | Complete    | 2026-10-30 |

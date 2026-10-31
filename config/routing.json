@@ -5,6 +5,7 @@
   "haiku_keywords": ["docstring", "readme", "changelog", "regex", "lint", "format", "typo"],
   "agy_file_threshold": 5,
   "fetch_budget_bytes": 24000,
+  "state_backend": "files",
   "models": {
     "claude": {"light": "haiku", "default": "sonnet", "deep": "opus"},
     "agy": {"light": "gemini-3.8-flash-medium", "heavy": "gemini-4-argon-high"}
