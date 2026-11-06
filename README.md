@@ -70,13 +70,14 @@ scripts/install-skills.sh --dry-run
 ## Documentation
 
 - **[Comprehensive User Guide (`docs/user-guide/README.md`)](docs/user-guide/README.md)** — Full walkthroughs, 7 end-to-end use cases, CLI & config reference, OKF file schemas, skill guides, and troubleshooting.
+- **[State Backends (`docs/user-guide/state-backends.md`)](docs/user-guide/state-backends.md)** — Pluggable `files` (default) and `mads` (`mads.contract/1`) state backends, migration (`mads import --from mad`), and rollback.
 - **[System Design Specification (`docs/superpowers/specs/2026-10-23-mad-design.md`)](docs/superpowers/specs/2026-10-23-mad-design.md)** — Architectural decisions, scoring tables, and environment facts.
 - **[Agent Briefing (`AGENTS.md`)](AGENTS.md)** — Invariants and instructions for `claude`, `agy`, `opencode`, and `codex`.
 
 ## Verification
 
 ```bash
-pytest -q                                                                                # 37 unit tests
+pytest -q                                                                                # 68 unit & contract tests (+1 real-binary mads integration test)
 bats tests/cli.bats                                                                      # 15 CLI & hook integration tests
 shellcheck bin/mad tests/stub_cli.sh scripts/install-skills.sh scripts/claude-check-hook.sh  # bash lint
 ```

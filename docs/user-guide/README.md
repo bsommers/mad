@@ -351,6 +351,7 @@ MAD_AGY_RUNNING=2 bin/mad check
   "haiku_keywords": ["docstring", "readme", "changelog", "regex", "lint", "format", "typo"],
   "agy_file_threshold": 5,
   "fetch_budget_bytes": 24000,
+  "state_backend": "files",
   "models": {
     "claude": {"light": "haiku", "default": "sonnet", "deep": "opus"},
     "agy": {"light": "gemini-3.8-flash-medium", "heavy": "gemini-4-argon-high"}
@@ -430,6 +431,9 @@ Located in [`skills/`](../../skills/) and installed via [`scripts/install-skills
 | `MAD_FORCE_HANDOFF` | unset | When set to `1`, forces `mad check` to print `handoff` and exit `10`. |
 | `MAD_CLAUDE_SKILLS_DIR` | `~/.claude/skills` | Target directory for Claude skills in `scripts/install-skills.sh`. |
 | `MAD_AGY_SKILLS_DIR` | `~/.gemini/config/skills` | Target directory for `agy` skills in `scripts/install-skills.sh`. |
+| `MAD_STATE_BACKEND` | `files` (from `config/routing.json`) | State backend selector (`files` \| `mads`). See [`state-backends.md`](state-backends.md). |
+| `MADS_BIN` | `mads` (resolved via `PATH`) | Path or command name for the `mads` store binary when `MAD_STATE_BACKEND=mads`. |
+| `MADS_TIMEOUT_S` | `10` | Subprocess timeout in seconds for each `mads` CLI invocation. |
 
 ### Exit Codes
 

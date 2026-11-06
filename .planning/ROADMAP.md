@@ -4,6 +4,7 @@
 
 - ✅ **v1.0 Orchestration core** - Phases 1-3 (completed 2026-10-23)
 - ✅ **v1.1 Pluggable state backend** - Phase 4 (completed 2026-10-30)
+- 📋 **v1.2 Worker leases & atomic handoff claims** - Phase 5 (planned)
 
 ## Overview
 
@@ -19,6 +20,7 @@ Milestone v1.0 builds the brief's three phases in order:
 - [x] **Phase 2: Context skills** - context_orchestrator, context_fetcher, route_task, handoff (completed 2026-10-23)
 - [x] **Phase 3: Telemetry & limits** - usage estimate, `mad check`, Claude Code hook (completed 2026-10-23)
 - [x] **Phase 4: Pluggable state backend** - `files` (default) or `mads` store behind one protocol (completed 2026-10-30)
+- [ ] **Phase 5: Worker leases & atomic handoff claims** - `agy` slot leasing (`claim_task`/`release_task`) and `mad handoff --take` (`take_handoff`) when `mads` backend is active (planned)
 
 ## Phase Details
 
@@ -96,6 +98,24 @@ Plans:
 
 - [x] 04-01-PLAN.md — backend protocol, FilesBackend, mads_client, MadsBackend, AGENTS.md amendment (steps in docs/superpowers/plans/2026-10-26-phase-4-pluggable-state-backend.md)
 
+### Phase 5: Worker leases & atomic handoff claims
+
+**Goal**: Prevent concurrent `agy` workers from exceeding `agy_max_concurrent` or double-consuming a handoff when `MAD_STATE_BACKEND=mads`, while remaining a safe no-op in `files` mode
+**Depends on**: Phase 4
+**Requirements**: COORD-01, COORD-02, COORD-03
+**Status**: Planned
+**Success Criteria** (what must be TRUE):
+
+  1. In `mads` mode, `mad handoff --take` claims and consumes the oldest open handoff via `mads tool take_handoff`; a second concurrent taker receives exit `1` (`no open handoff`)
+  2. `mad claim` / `mad release` (or `mad check` slot probe) acquires/releases `agy:slot:<N>` up to `agy_max_concurrent` (2) via `mads tool claim_task` / `release_task`
+  3. In `files` mode (default), all existing behavior and tests remain unchanged
+
+**Plans**: 0/1 plans complete
+
+Plans:
+
+- [ ] 05-01-PLAN.md — atomic handoff take and `agy` concurrency lease primitives
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -104,3 +124,4 @@ Plans:
 | 2. Context skills | v1.0 | 1/1 | Complete    | 2026-10-23 |
 | 3. Telemetry & limits | v1.0 | 1/1 | Complete    | 2026-10-23 |
 | 4. Pluggable state backend | v1.1 | 1/1 | Complete    | 2026-10-30 |
+| 5. Worker leases & atomic handoff claims | v1.2 | 0/1 | Planned | - |
