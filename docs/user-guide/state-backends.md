@@ -60,3 +60,37 @@ export MAD_STATE_BACKEND=files
 ```
 
 or setting `"state_backend": "files"` in `config/routing.json`. Ensure `.global_dev_log.md` and `.opengsd_handoff.md` are writable (`chmod u+w .global_dev_log.md .opengsd_handoff.md` if previously exported read-only by `mads export --out`).
+
+## Worker Leases & Atomic Handoff Claims (`v1.2`)
+
+To prevent multiple concurrent `agy` workers from exceeding concurrency thresholds (`agy_max_concurrent`, default 2) or double-consuming open handoffs, `mad` provides worker leases and atomic handoff claiming across both backends via the `CoordinationBackend` interface:
+
+### Atomic Handoff Take (`mad handoff --take`)
+
+```bash
+# Claim oldest open handoff, project to .opengsd_handoff.md, and launch agy (or print/dry-run)
+mad handoff --take
+mad handoff --take --print
+mad handoff --take --dry-run
+```
+
+- **In `mads` mode**: Calls `mads tool take_handoff` inside an immediate transaction, atomically marking the oldest open handoff taken by the specified `--agent` (default `agy`). Projects the claimed markdown to `.opengsd_handoff.md`. If no open handoff exists, exits `1` (`mad: no open handoff`). `--write` and `--take` cannot be combined (exits `2`).
+- **In `files` mode**: Deterministically reads and validates `.opengsd_handoff.md` as before (safe fallback).
+
+### Worker Slot Leases (`mad claim` / `mad release`)
+
+```bash
+# Claim a concurrency slot lease (default agent: agy, default TTL: 60s)
+mad claim --agent agy --ttl 60
+# Outputs JSON: {"slot": 1, "resource": "agy:slot:1", "claim_id": "...", "fencing_token": 1, "expires_at": "..."}
+
+# Release acquired slot lease when worker completes
+mad release --claim-id <CLAIM_ID> --token <FENCING_TOKEN> [--outcome released]
+# Outputs JSON: {"released": true}
+```
+
+- **In `mads` mode**:
+  - `mad claim` acquires the lowest available slot among `1..max_concurrent` (configured in `config/routing.json` under `telemetry.agy_max_concurrent`). If all slots are occupied by active leases, exits `1` (`mad: all agy slots busy (max_concurrent=N)`).
+  - `mad release` releases the claimed slot using monotonic fencing tokens to prevent zombie workers from releasing renewed leases. Exits `1` on token mismatch (`LEASE_LOST`) or missing claim.
+- **In `files` mode**: Both commands act as deterministic no-ops returning valid JSON (`{"slot": 1, "claim_id": "files-noop", ...}` and `{"released": true}`), ensuring scripts running against `files` mode execute without modification or error.
+

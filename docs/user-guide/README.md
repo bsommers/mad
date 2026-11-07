@@ -334,7 +334,9 @@ MAD_AGY_RUNNING=2 bin/mad check
 | `log` | `bin/mad log --kind KIND --agent AGENT [--field k=v]... MESSAGE` | Appends one entry to `.global_dev_log.md`. `KIND` ∈ `{task, transition, decision, handoff, note}`; `AGENT` ∈ `{claude, agy, human, mad}`. |
 | `fetch` | `bin/mad fetch [--reindex] [--budget BYTES] [KEYWORD...]` | Scores `.active_context/*.md` against `KEYWORD...` within `--budget` (default `24000`). `--reindex` regenerates `.active_context/INDEX.md`. |
 | `handoff` (write) | `bin/mad handoff --write --agent AGENT --problem TEXT --step STEP... [--context PATH...] [--verify CMD...] [--file PATH]` | Atomically writes `.opengsd_handoff.md` with the 4 required OKF sections and appends a `handoff` entry to `.global_dev_log.md`. |
-| `handoff` (launch) | `bin/mad handoff [--model M] [--file PATH] [--dry-run]` | Validates `.opengsd_handoff.md` and `exec`s `agy --model M -i "<content>"` (default model: `gemini-4-argon-high`). |
+| `handoff` (launch / take) | `bin/mad handoff [--take] [--print] [--model M] [--file PATH] [--dry-run]` | Validates `.opengsd_handoff.md` (or with `--take`, atomically claims the oldest open handoff in `mads` mode) and `exec`s `agy --model M -i "<content>"` (or prints Markdown with `--print`). |
+| `claim` | `bin/mad claim [--agent AGENT] [--ttl SECONDS]` | Acquires an `agy:slot:1..agy_max_concurrent` worker lease via `mads tool claim_task` (or returns a deterministic no-op in `files` mode). |
+| `release` | `bin/mad release --claim-id ID --token TOKEN [--outcome OUTCOME]` | Releases a worker lease via `mads tool release_task` (or no-op in `files` mode). |
 | `check` | `bin/mad check [--transcripts-dir PATH] [--record-rate-limit]` | Updates `.agent_telemetry.json` atomically and prints `ok` (exit `0`) or `handoff` (exit `10`). |
 
 > **Tip:** If your `PROMPT` starts with a dash (e.g., `"-v flag is broken"`), place `--` before the prompt: `bin/mad route -- "-v flag is broken"`.

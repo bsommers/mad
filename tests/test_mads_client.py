@@ -88,3 +88,85 @@ def test_timeout_raises_mads_error(tmp_path: Path, monkeypatch: pytest.MonkeyPat
         call("event.append", {}, cwd=tmp_path)
     assert exc_info.value.code == "INTERNAL"
     assert "timed out" in exc_info.value.message.lower()
+
+
+def test_write_and_take_handoff(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MADS_BIN", STUB_PATH)
+    monkeypatch.setenv("MADS_STUB_STATE", str(tmp_path / "state.json"))
+
+    created = call(
+        "write_handoff",
+        {
+            "problem": "debug deadlock",
+            "steps": ["step 1", "step 2"],
+            "agent": "claude",
+            "run_id": "mad_legacy",
+        },
+        cwd=tmp_path,
+    )
+    assert "handoff_id" in created
+    hof_id = created["handoff_id"]
+
+    taken = call(
+        "take_handoff",
+        {"agent": "agy", "run_id": "mad_legacy"},
+        cwd=tmp_path,
+    )
+    assert taken["handoff_id"] == hof_id
+    assert taken["problem"] == "debug deadlock"
+    assert taken["steps"] == ["step 1", "step 2"]
+
+    with pytest.raises(MadsError) as exc_info:
+        call("take_handoff", {"agent": "agy", "run_id": "mad_legacy"}, cwd=tmp_path)
+    assert exc_info.value.code == "NOT_FOUND"
+
+
+def test_claim_and_release_task(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("MADS_BIN", STUB_PATH)
+    monkeypatch.setenv("MADS_STUB_STATE", str(tmp_path / "state.json"))
+
+    claim1 = call(
+        "claim_task",
+        {"resource": "agy:slot:1", "agent": "agy", "run_id": "mad_legacy"},
+        cwd=tmp_path,
+    )
+    assert claim1["fencing_token"] == 1
+    claim1_id = claim1["claim_id"]
+
+    with pytest.raises(MadsError) as exc_conflict:
+        call(
+            "claim_task",
+            {"resource": "agy:slot:1", "agent": "agy", "run_id": "mad_legacy"},
+            cwd=tmp_path,
+        )
+    assert exc_conflict.value.code == "CONFLICT"
+
+    rel1 = call(
+        "release_task",
+        {"claim_id": claim1_id, "fencing_token": 1},
+        cwd=tmp_path,
+    )
+    assert rel1 == {"released": True}
+
+    rel1_repeat = call(
+        "release_task",
+        {"claim_id": claim1_id, "fencing_token": 1},
+        cwd=tmp_path,
+    )
+    assert rel1_repeat == {"released": True}
+
+    claim2 = call(
+        "claim_task",
+        {"resource": "agy:slot:1", "agent": "agy", "run_id": "mad_legacy"},
+        cwd=tmp_path,
+    )
+    assert claim2["fencing_token"] == 2
+    claim2_id = claim2["claim_id"]
+
+    with pytest.raises(MadsError) as exc_lease:
+        call(
+            "release_task",
+            {"claim_id": claim2_id, "fencing_token": 1},
+            cwd=tmp_path,
+        )
+    assert exc_lease.value.code == "LEASE_LOST"

@@ -4,8 +4,9 @@ from pathlib import Path
 import pytest
 
 from mad import cli, handoff, store
-from mad.backend import StateBackend, get_backend
+from mad.backend import CoordinationBackend, StateBackend, get_backend
 from mad.files_backend import FilesBackend
+from tests import backend_contract
 
 
 def test_files_backend_satisfies_protocol(tmp_path: Path) -> None:
@@ -78,3 +79,50 @@ def test_unknown_mad_state_backend_exits_2(tmp_path: Path, monkeypatch: pytest.M
 
     code = cli.main(["log", "--kind", "note", "--agent", "human", "hello"])
     assert code == 2
+
+
+def test_files_backend_satisfies_coordination_protocol(tmp_path: Path) -> None:
+    backend: CoordinationBackend = FilesBackend(tmp_path)
+    assert isinstance(backend, FilesBackend)
+
+
+def test_files_backend_take_handoff(tmp_path: Path) -> None:
+    fb = FilesBackend(tmp_path)
+    with pytest.raises(ValueError, match="unknown agent"):
+        fb.take_handoff("invalid_agent")
+
+    with pytest.raises(ValueError, match="handoff file not found"):
+        fb.take_handoff("agy")
+
+    backend_contract.check_handoff_take_round_trip(fb, tmp_path)
+
+
+def test_files_backend_claim_and_release_slot(tmp_path: Path) -> None:
+    fb = FilesBackend(tmp_path)
+    with pytest.raises(ValueError, match="unknown agent"):
+        fb.claim_slot("invalid_agent")
+
+    with pytest.raises(ValueError, match="max_concurrent"):
+        fb.claim_slot("agy", max_concurrent=0)
+
+    with pytest.raises(ValueError, match="ttl_s"):
+        fb.claim_slot("agy", ttl_s=0)
+
+    with pytest.raises(ValueError, match="claim_id"):
+        fb.release_slot("", 0)
+
+    with pytest.raises(ValueError, match="claim_id"):
+        fb.release_slot("   ", 0)
+
+    backend_contract.check_slot_claim_and_release(fb, tmp_path)
+
+    lease = fb.claim_slot("agy", max_concurrent=5, ttl_s=120)
+    assert lease == {
+        "slot": 1,
+        "resource": "agy:slot:1",
+        "claim_id": "files-noop",
+        "fencing_token": 0,
+        "expires_at": None,
+    }
+    rel = fb.release_slot("files-noop", 0, outcome="success")
+    assert rel == {"released": True}

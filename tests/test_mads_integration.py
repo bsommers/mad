@@ -91,3 +91,21 @@ def test_real_mads_end_to_end_and_handoff_parity(
     files_handoff_text = validate_handoff(files_handoff_path)
 
     assert _normalize_updated_date(mads_handoff_text) == _normalize_updated_date(files_handoff_text)
+
+    # Phase 5 (COORD-01..02): atomic take_handoff and 2-slot claim/release against real mads
+    assert cli.main(["handoff", "--take", "--print"]) == 0
+    assert cli.main(["handoff", "--take", "--print"]) == 1
+
+    from mad.mads_backend import MadsBackend
+
+    mb = MadsBackend(proj_mads)
+    lease1 = mb.claim_slot("agy", max_concurrent=2, ttl_s=60)
+    lease2 = mb.claim_slot("agy", max_concurrent=2, ttl_s=60)
+    assert lease1["slot"] == 1
+    assert lease2["slot"] == 2
+    with pytest.raises(ValueError, match="all agy slots busy"):
+        mb.claim_slot("agy", max_concurrent=2, ttl_s=60)
+    assert mb.release_slot(lease1["claim_id"], lease1["fencing_token"]) == {"released": True}
+    lease3 = mb.claim_slot("agy", max_concurrent=2, ttl_s=60)
+    assert lease3["slot"] == 1
+    assert lease3["fencing_token"] > lease1["fencing_token"]

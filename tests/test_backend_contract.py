@@ -44,6 +44,64 @@ def test_contract_telemetry_round_trip(backend_and_root: tuple[StateBackend, Pat
     backend_contract.check_telemetry_round_trip(backend, root)
 
 
+def test_contract_handoff_take_round_trip(backend_and_root: tuple[StateBackend, Path]) -> None:
+    backend, root = backend_and_root
+    backend_contract.check_handoff_take_round_trip(backend, root)
+
+
+def test_contract_slot_claim_and_release(backend_and_root: tuple[StateBackend, Path]) -> None:
+    backend, root = backend_and_root
+    backend_contract.check_slot_claim_and_release(backend, root)
+
+
+def test_mads_backend_take_handoff_single_consumption(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("MADS_BIN", STUB_PATH)
+    monkeypatch.setenv("MADS_STUB_STATE", str(tmp_path / ".mads" / "stub_state.json"))
+
+    backend = MadsBackend(tmp_path)
+    backend.write_handoff("claude", "Single consumption problem", ["First step"])
+
+    taken = backend.take_handoff("agy")
+    assert "Single consumption problem" in taken
+
+    with pytest.raises(ValueError, match="no open handoff"):
+        backend.take_handoff("agy")
+
+
+def test_mads_backend_slot_claims_respect_max_concurrent_and_fencing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("MADS_BIN", STUB_PATH)
+    monkeypatch.setenv("MADS_STUB_STATE", str(tmp_path / ".mads" / "stub_state.json"))
+
+    backend = MadsBackend(tmp_path)
+    lease1 = backend.claim_slot("agy", max_concurrent=2, ttl_s=60)
+    assert lease1["slot"] == 1
+    assert lease1["resource"] == "agy:slot:1"
+    assert lease1["fencing_token"] == 1
+
+    lease2 = backend.claim_slot("agy", max_concurrent=2, ttl_s=60)
+    assert lease2["slot"] == 2
+    assert lease2["resource"] == "agy:slot:2"
+    assert lease2["fencing_token"] == 1
+
+    with pytest.raises(ValueError, match="all agy slots busy"):
+        backend.claim_slot("agy", max_concurrent=2, ttl_s=60)
+
+    rel1 = backend.release_slot(lease1["claim_id"], lease1["fencing_token"])
+    assert rel1 == {"released": True}
+
+    lease3 = backend.claim_slot("agy", max_concurrent=2, ttl_s=60)
+    assert lease3["slot"] == 1
+    assert lease3["resource"] == "agy:slot:1"
+    assert lease3["fencing_token"] == 2
+
+    with pytest.raises(ValueError, match="lease lost"):
+        backend.release_slot(lease3["claim_id"], 1)
+
+
 def test_mads_absent_falls_back_to_files_and_logs_one_note_per_process(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

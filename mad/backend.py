@@ -31,6 +31,24 @@ class StateBackend(Protocol):
     def write_telemetry(self, data: Mapping[str, Any]) -> Path: ...
 
 
+class CoordinationBackend(Protocol):
+    """3-member coordination protocol for atomic handoff claims and worker slot leases."""
+
+    def take_handoff(self, agent: str = "agy") -> str: ...
+    def claim_slot(
+        self,
+        agent: str = "agy",
+        max_concurrent: int = 2,
+        ttl_s: int = 60,
+    ) -> dict[str, Any]: ...
+    def release_slot(
+        self,
+        claim_id: str,
+        fencing_token: int,
+        outcome: str | None = None,
+    ) -> dict[str, Any]: ...
+
+
 def get_backend(
     root: Path,
     env: Mapping[str, str] | None = None,

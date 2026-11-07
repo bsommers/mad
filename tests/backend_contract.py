@@ -1,5 +1,6 @@
 """Shared StateBackend contract checks used for both FilesBackend and MadsBackend."""
 from pathlib import Path
+from typing import Any
 import pytest
 
 from mad.backend import StateBackend
@@ -93,3 +94,20 @@ def check_telemetry_round_trip(backend: StateBackend, root: Path) -> None:
     loaded = backend.read_telemetry()
     for key in ("version", "updated", "claude", "agy"):
         assert loaded[key] == sample[key]
+
+
+def check_handoff_take_round_trip(backend: Any, root: Path) -> None:
+    backend.write_handoff("claude", "Take test problem", ["Step one"])
+    taken = backend.take_handoff("agy")
+    assert "Take test problem" in taken
+    assert "1. Step one" in taken
+
+
+def check_slot_claim_and_release(backend: Any, root: Path) -> None:
+    lease = backend.claim_slot("agy", max_concurrent=2, ttl_s=60)
+    assert lease["slot"] == 1
+    assert lease["resource"] == "agy:slot:1"
+    assert "claim_id" in lease
+    assert "fencing_token" in lease
+    rel = backend.release_slot(lease["claim_id"], lease["fencing_token"])
+    assert rel == {"released": True}

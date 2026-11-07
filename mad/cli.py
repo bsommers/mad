@@ -1,5 +1,6 @@
 """Argparse CLI front end for mad."""
 import argparse
+import json
 import os
 import shlex
 import sys
@@ -9,6 +10,7 @@ from mad.backend import BackendUsageError, get_backend
 from mad.context import reindex_context
 from mad.handoff import build_handoff_command, validate_handoff
 from mad.launch import build_command, exec_command
+from mad.mads_client import MadsError
 from mad.route import classify, load_config
 from mad.store import find_root, init_store
 from mad.telemetry import check_limits
@@ -46,6 +48,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
     p_handoff = sub.add_parser("handoff")
     p_handoff.add_argument("--write", action="store_true")
+    p_handoff.add_argument("--take", action="store_true")
+    p_handoff.add_argument("--print", dest="print_only", action="store_true")
     p_handoff.add_argument("--agent", choices=("claude", "agy", "human", "mad"))
     p_handoff.add_argument("--problem")
     p_handoff.add_argument("--step", action="append", default=[])
@@ -58,6 +62,15 @@ def _build_parser() -> argparse.ArgumentParser:
     p_check = sub.add_parser("check")
     p_check.add_argument("--transcripts-dir")
     p_check.add_argument("--record-rate-limit", action="store_true")
+
+    p_claim = sub.add_parser("claim")
+    p_claim.add_argument("--agent", choices=("claude", "agy", "human", "mad"), default="agy")
+    p_claim.add_argument("--ttl", type=int, default=60)
+
+    p_release = sub.add_parser("release")
+    p_release.add_argument("--claim-id", required=True)
+    p_release.add_argument("--token", type=int, required=True)
+    p_release.add_argument("--outcome")
 
     return parser
 
@@ -147,6 +160,8 @@ def main(argv: list[str] | None = None) -> int:
 
         if ns.cmd == "handoff":
             hpath = Path(ns.file) if ns.file else (root / ".opengsd_handoff.md")
+            if ns.write and ns.take:
+                parser.error("handoff cannot combine --write and --take")
             if ns.write:
                 if not ns.agent or not ns.problem or not ns.step:
                     parser.error("handoff --write requires --agent, --problem, and at least one --step")
@@ -161,7 +176,14 @@ def main(argv: list[str] | None = None) -> int:
                 print(out.relative_to(root) if out.is_relative_to(root) else out)
                 return 0
 
-            content = validate_handoff(hpath)
+            if ns.take:
+                backend = get_backend(root, os.environ, handoff_path=hpath)
+                content = backend.take_handoff(agent=ns.agent or "agy")  # type: ignore[attr-defined]
+            else:
+                content = validate_handoff(hpath)
+            if ns.print_only:
+                sys.stdout.write(content if content.endswith("\n") else content + "\n")
+                return 0
             cfg = load_config()
             model = ns.model or cfg["models"]["agy"]["heavy"]
             cmd = build_handoff_command(content, model, os.environ)
@@ -171,6 +193,29 @@ def main(argv: list[str] | None = None) -> int:
             if os.environ.get("MAD_NO_TTY_CHECK") != "1":
                 _require_tty()
             exec_command(cmd)
+
+        if ns.cmd == "claim":
+            cfg = load_config()
+            tcfg = cfg.get("telemetry", {}) if isinstance(cfg, dict) else {}
+            max_concurrent = int(tcfg.get("agy_max_concurrent", 2))
+            backend = get_backend(root, os.environ)
+            lease = backend.claim_slot(  # type: ignore[attr-defined]
+                agent=ns.agent,
+                max_concurrent=max_concurrent,
+                ttl_s=ns.ttl,
+            )
+            print(json.dumps(lease))
+            return 0
+
+        if ns.cmd == "release":
+            backend = get_backend(root, os.environ)
+            res = backend.release_slot(  # type: ignore[attr-defined]
+                claim_id=ns.claim_id,
+                fencing_token=ns.token,
+                outcome=ns.outcome,
+            )
+            print(json.dumps(res))
+            return 0
 
         if ns.cmd == "check":
             cfg = load_config()
@@ -193,7 +238,7 @@ def main(argv: list[str] | None = None) -> int:
     except BackendUsageError as exc:
         print(f"mad: {exc}", file=sys.stderr)
         return 2
-    except ValueError as exc:
+    except (ValueError, MadsError) as exc:
         print(f"mad: {exc}", file=sys.stderr)
         return 1
 

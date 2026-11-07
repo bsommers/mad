@@ -77,7 +77,7 @@ scripts/install-skills.sh --dry-run
 ## Verification
 
 ```bash
-pytest -q                                                                                # 68 unit & contract tests (+1 real-binary mads integration test)
-bats tests/cli.bats                                                                      # 15 CLI & hook integration tests
+pytest -q                                                                                # 79 unit & contract tests (+1 real-binary mads integration test)
+bats tests/cli.bats                                                                      # 17 CLI & hook integration tests
 shellcheck bin/mad tests/stub_cli.sh scripts/install-skills.sh scripts/claude-check-hook.sh  # bash lint
 ```

@@ -85,10 +85,17 @@ def _load_state() -> dict[str, Any]:
     p = _state_path()
     if p.is_file():
         try:
-            return json.loads(p.read_text(encoding="utf-8"))
+            state = json.loads(p.read_text(encoding="utf-8"))
+            if isinstance(state, dict):
+                state.setdefault("events", [])
+                state.setdefault("artifacts", {})
+                state.setdefault("handoffs", {})
+                state.setdefault("claims", {})
+                state.setdefault("fence", {})
+                return state
         except (OSError, json.JSONDecodeError):
             pass
-    return {"events": [], "artifacts": {}, "handoffs": {}}
+    return {"events": [], "artifacts": {}, "handoffs": {}, "claims": {}, "fence": {}}
 
 
 def _save_state(state: dict[str, Any]) -> None:
@@ -202,15 +209,97 @@ def main(argv: list[str]) -> int:
         today_str = datetime.now(UTC).date().isoformat()
         body = {
             "from_agent": req.get("from_agent", "mad"),
+            "to_agent": req.get("to_agent"),
             "run_id": req.get("run_id", "mad_legacy"),
             "problem": problem,
             "steps": steps,
             "context_refs": [_flatten(c) for c in req.get("context_refs", []) if str(c).strip()],
             "verify": [_flatten(v) for v in req.get("verify", []) if str(v).strip()],
         }
-        state["handoffs"][hof_id] = {"body": body, "date": today_str}
+        state["handoffs"][hof_id] = {"body": body, "date": today_str, "taken": False}
         _save_state(state)
         return _emit_ok({"handoff_id": hof_id})
+
+    if verb == "take_handoff":
+        target_run_id = req.get("run_id", "mad_legacy")
+        target_agent = req.get("agent")
+        matched_hof_id = None
+        matched_hof = None
+        for hof_id, hof in state["handoffs"].items():
+            if hof.get("taken", False):
+                continue
+            hof_body = hof.get("body", {})
+            if hof_body.get("run_id", "mad_legacy") != target_run_id:
+                continue
+            if hof_body.get("to_agent") not in (None, target_agent):
+                continue
+            matched_hof_id = hof_id
+            matched_hof = hof
+            break
+
+        if matched_hof is None:
+            return _emit_err("NOT_FOUND", "no open handoff", {"run_id": target_run_id})
+
+        matched_hof["taken"] = True
+        _save_state(state)
+        return _emit_ok({"handoff_id": matched_hof_id, **matched_hof["body"]})
+
+    if verb == "claim_task":
+        resource = str(req.get("resource", ""))
+        if resource.startswith("handoff:"):
+            return _emit_err("VALIDATION", "resource namespace is reserved", {"field": "resource"})
+        ttl_raw = req.get("ttl_s", 60)
+        try:
+            ttl_s = int(ttl_raw)
+            if ttl_s < 1 or ttl_s > 86400:
+                raise ValueError()
+        except (ValueError, TypeError):
+            return _emit_err("VALIDATION", "ttl_s out of range", {"field": "ttl_s"})
+
+        for c in state["claims"].values():
+            if c.get("resource") == resource and c.get("released_at") is None:
+                return _emit_err("CONFLICT", "resource is already claimed", {"resource": resource})
+
+        token = int(state["fence"].get(resource, 0)) + 1
+        state["fence"][resource] = token
+        claim_id = f"clm_{len(state['claims']) + 1:04d}"
+        expires_at = "2099-01-01T00:00:00.000Z"
+        state["claims"][claim_id] = {
+            "claim_id": claim_id,
+            "resource": resource,
+            "agent": req.get("agent", "agy"),
+            "run_id": req.get("run_id", "mad_legacy"),
+            "fencing_token": token,
+            "released_at": None,
+            "expires_at": expires_at,
+            "outcome": None,
+        }
+        _save_state(state)
+        return _emit_ok({"claim_id": claim_id, "fencing_token": token, "expires_at": expires_at})
+
+    if verb == "release_task":
+        claim = state["claims"].get(str(req.get("claim_id", "")))
+        if not claim:
+            return _emit_err("NOT_FOUND", "claim not found")
+
+        try:
+            req_token = int(req.get("fencing_token", -1))
+        except (ValueError, TypeError):
+            req_token = -1
+
+        if int(claim.get("fencing_token", -1)) != req_token:
+            return _emit_err("LEASE_LOST", "lease lost", {"reason": "stale_token", "claim_id": claim["claim_id"]})
+
+        outcome = req.get("outcome")
+        if outcome is not None and outcome in ("expired", "rolled_back", "taken"):
+            return _emit_err("VALIDATION", "outcome is reserved", {"field": "outcome"})
+
+        if claim["released_at"] is None:
+            claim["released_at"] = datetime.now(UTC).isoformat()
+            claim["outcome"] = outcome or "released"
+            _save_state(state)
+
+        return _emit_ok({"released": True})
 
     if verb == "get_agent_context":
         if os.environ.get("MADS_STUB_CONTEXT_NOT_FOUND") == "1":

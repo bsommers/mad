@@ -9,7 +9,7 @@ import time
 from typing import Any
 
 from mad.files_backend import FilesBackend, _clip_utf8_lines
-from mad.handoff import _flatten
+from mad.handoff import _flatten, validate_handoff
 from mad.mads_client import MadsError, call, resolve_mads_bin
 from mad.store import VALID_AGENTS, VALID_KINDS, append_log as _store_append_log
 from mad.telemetry import read_telemetry as _read_telemetry, write_telemetry_atomic as _write_telemetry_atomic
@@ -206,3 +206,89 @@ class MadsBackend:
             },
         )
         return path
+
+    def take_handoff(self, agent: str = "agy") -> str:
+        if agent not in VALID_AGENTS:
+            raise ValueError(f"unknown agent: {agent}")
+        try:
+            resp = self._call("take_handoff", {"agent": agent, "run_id": MAD_RUN_ID})
+        except MadsError as exc:
+            if exc.code == "NOT_FOUND":
+                raise ValueError("no open handoff") from exc
+            raise ValueError(exc.message) from exc
+        handoff_id = str(resp["handoff_id"])
+        exported = self._call("export", {"format": "md", "key": handoff_id})
+        body = str(exported["markdown"])
+
+        target = self.handoff_path if self.handoff_path is not None else (self.root / ".opengsd_handoff.md")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp_name = tempfile.mkstemp(dir=target.parent, prefix=".opengsd_handoff.", suffix=".tmp")
+        tmp_path = Path(tmp_name)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                fh.write(body)
+                fh.flush()
+                os.fsync(fh.fileno())
+            os.replace(tmp_path, target)
+        except BaseException:
+            tmp_path.unlink(missing_ok=True)
+            raise
+
+        return validate_handoff(target)
+
+    def claim_slot(
+        self,
+        agent: str = "agy",
+        max_concurrent: int = 2,
+        ttl_s: int = 60,
+    ) -> dict[str, Any]:
+        if agent not in VALID_AGENTS:
+            raise ValueError(f"unknown agent: {agent}")
+        if max_concurrent < 1:
+            raise ValueError("max_concurrent must be >= 1")
+        if ttl_s < 1:
+            raise ValueError("ttl_s must be >= 1")
+        for slot in range(1, max_concurrent + 1):
+            resource = f"agy:slot:{slot}"
+            try:
+                resp = self._call(
+                    "claim_task",
+                    {
+                        "resource": resource,
+                        "agent": agent,
+                        "run_id": MAD_RUN_ID,
+                        "ttl_s": int(ttl_s),
+                    },
+                )
+                return {
+                    "slot": slot,
+                    "resource": resource,
+                    "claim_id": str(resp["claim_id"]),
+                    "fencing_token": int(resp["fencing_token"]),
+                    "expires_at": resp.get("expires_at"),
+                }
+            except MadsError as exc:
+                if exc.code == "CONFLICT":
+                    continue
+                raise ValueError(exc.message) from exc
+        raise ValueError(f"all agy slots busy (max_concurrent={max_concurrent})")
+
+    def release_slot(
+        self,
+        claim_id: str,
+        fencing_token: int,
+        outcome: str | None = None,
+    ) -> dict[str, Any]:
+        if not claim_id or not str(claim_id).strip():
+            raise ValueError("claim_id cannot be empty")
+        payload: dict[str, Any] = {
+            "claim_id": str(claim_id),
+            "fencing_token": int(fencing_token),
+        }
+        if outcome is not None:
+            payload["outcome"] = outcome
+        try:
+            resp = self._call("release_task", payload)
+        except MadsError as exc:
+            raise ValueError(exc.message) from exc
+        return {"released": bool(resp.get("released", True))}

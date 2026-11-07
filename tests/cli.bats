@@ -230,3 +230,54 @@ PY
   [[ "$output" == *"hookSpecificOutput"* ]]
   [[ "$output" == *"context_orchestrator"* ]]
 }
+
+@test "handoff --write --take is rejected and handoff --take / claim / release work across files and mads" {
+  run "$MAD" handoff --write --take --agent claude --problem "p" --step "s"
+  [ "$status" -eq 2 ]
+
+  # files mode: claim & release are deterministic no-ops
+  run "$MAD" claim
+  [ "$status" -eq 0 ]
+  slot="$(printf '%s' "$output" | python3 -c 'import json,sys;d=json.load(sys.stdin);print(d["slot"],d["claim_id"])')"
+  [ "$slot" = "1 files-noop" ]
+
+  run "$MAD" release --claim-id files-noop --token 0
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"released": true'* ]]
+
+  # mads mode: atomic handoff --take and 2-slot concurrency cap
+  export MAD_STATE_BACKEND=mads
+  export MADS_BIN="$REPO/tests/stubs/mads_stub.py"
+  export MADS_STUB_STATE="$BATS_TEST_TMPDIR/.mads/stub_state.json"
+
+  run "$MAD" handoff --write --agent claude --problem "Race condition" --step "Fix lock"
+  [ "$status" -eq 0 ]
+
+  run "$MAD" handoff --take --print
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Race condition"* ]]
+
+  # Second taker receives exit 1 (no open handoff)
+  run "$MAD" handoff --take --print
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"no open handoff"* ]]
+
+  # Claim slots 1 and 2, 3rd fails with exit 1
+  run "$MAD" claim
+  [ "$status" -eq 0 ]
+  c1_id="$(printf '%s' "$output" | python3 -c 'import json,sys;print(json.load(sys.stdin)["claim_id"])')"
+  c1_tok="$(printf '%s' "$output" | python3 -c 'import json,sys;print(json.load(sys.stdin)["fencing_token"])')"
+
+  run "$MAD" claim
+  [ "$status" -eq 0 ]
+
+  run "$MAD" claim
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"all agy slots busy"* ]]
+
+  run "$MAD" release --claim-id "$c1_id" --token "$c1_tok"
+  [ "$status" -eq 0 ]
+
+  run "$MAD" claim
+  [ "$status" -eq 0 ]
+}

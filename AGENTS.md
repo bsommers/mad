@@ -47,6 +47,9 @@ bin/mad init                       # create .active_context/ and .global_dev_log
 bin/mad fetch docker               # score .active_context/*.md by keyword/title within byte budget
 bin/mad handoff --write --agent claude --problem "..." --step "..."   # write .opengsd_handoff.md + log
 bin/mad handoff                    # launch agy with .opengsd_handoff.md via -i
+bin/mad handoff --take             # claim oldest handoff (mads) or read file, then launch agy
+bin/mad claim                      # acquire worker slot lease (agy:slot:N) within concurrency cap
+bin/mad release --claim-id <id> --token <n>   # release acquired worker slot lease
 bin/mad check                      # update .agent_telemetry.json and exit 0 (ok) or 10 (handoff)
 ```
 
@@ -63,11 +66,11 @@ mad/               Python package, stdlib only
   context.py          fetch_context(), reindex_context()  (.active_context/ scoring & INDEX.md)
   handoff.py          write_handoff(), validate_handoff(), build_handoff_command()  (.opengsd_handoff.md)
   telemetry.py        count_claude_messages(), write_telemetry_atomic(), check_limits()  (.agent_telemetry.json)
-  backend.py          StateBackend protocol and get_backend() selector (files | mads)
+  backend.py          StateBackend and CoordinationBackend (take_handoff, claim_slot, release_slot)
   files_backend.py    FilesBackend wrapper over store / handoff / context / telemetry
   mads_client.py      subprocess JSON-over-CLI client for mads (mads.contract/1)
   mads_backend.py     MadsBackend with STORE_BUSY retry and graceful fallback to files
-  cli.py              argparse front end for init / route / run / log / fetch / handoff / check
+  cli.py              argparse front end for init / route / run / log / fetch / handoff / check / claim / release
 config/routing.json   keywords, file-count threshold, model ids, fetch budget, telemetry thresholds
 skills/<name>/SKILL.md  Phase 2 skills (context_orchestrator, context_fetcher, route_task)
 scripts/              install-skills.sh, claude-check-hook.sh

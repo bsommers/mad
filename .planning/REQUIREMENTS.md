@@ -41,11 +41,11 @@ Milestone v1.0, Orchestration core. Details for every requirement are in `docs/s
 - [x] **BACK-04**: If `mads` is selected but absent, mad falls back to `files` and logs one `note` entry; routing decisions are identical in both modes
 - [x] **BACK-05**: `AGENTS.md` is amended so SQLite may exist only inside the separate `mads` binary; exported `.opengsd_handoff.md` equals the files-backend output
 
-## Planned (v1.2, Worker leases & atomic handoff claims)
+## v1.2 Requirements (Worker leases & atomic handoff claims)
 
-- [ ] **COORD-01**: `mad handoff --take` atomically claims and consumes the oldest open handoff via `mads tool take_handoff` in `mads` mode (in `files` mode, reads and validates `.opengsd_handoff.md`)
-- [ ] **COORD-02**: `mad` supports `agy` concurrency slot claims (`agy:slot:1..agy_max_concurrent`) via `mads tool claim_task` / `release_task` when `MAD_STATE_BACKEND=mads`
-- [ ] **COORD-03**: All existing `files` mode behavior and tests remain 100% unchanged
+- [x] **COORD-01**: `mad handoff --take` atomically claims and consumes the oldest open handoff via `mads tool take_handoff` in `mads` mode (in `files` mode, reads and validates `.opengsd_handoff.md`)
+- [x] **COORD-02**: `mad` supports `agy` concurrency slot claims (`agy:slot:1..agy_max_concurrent`) via `mads tool claim_task` / `release_task` when `MAD_STATE_BACKEND=mads`
+- [x] **COORD-03**: All existing `files` mode behavior and tests remain 100% unchanged
 
 ## Out of Scope
 
@@ -81,8 +81,8 @@ Milestone v1.0, Orchestration core. Details for every requirement are in `docs/s
 | BACK-03 | Phase 4 | Complete |
 | BACK-04 | Phase 4 | Complete |
 | BACK-05 | Phase 4 | Complete |
-| COORD-01 | Phase 5 | Pending |
-| COORD-02 | Phase 5 | Pending |
-| COORD-03 | Phase 5 | Pending |
+| COORD-01 | Phase 5 | Complete |
+| COORD-02 | Phase 5 | Complete |
+| COORD-03 | Phase 5 | Complete |
 
-**Coverage:** 14 v1 requirements (complete), 5 v1.1 requirements (complete), 3 planned v1.2 requirements (mapped to Phase 5).
+**Coverage:** 14 v1 requirements (complete), 5 v1.1 requirements (complete), 3 v1.2 requirements (complete).
