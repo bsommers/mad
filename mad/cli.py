@@ -62,6 +62,19 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _require_tty() -> None:
+    """Fail fast if there is no controlling terminal: agy's TUI cannot start without one
+    and would otherwise print an error yet exit 0."""
+    try:
+        fd = os.open("/dev/tty", os.O_RDWR)
+    except OSError as exc:
+        raise ValueError(
+            "handoff needs an interactive terminal (no controlling terminal: "
+            f"{exc.strerror}); run it from a real terminal or use --dry-run"
+        ) from exc
+    os.close(fd)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     ns = parser.parse_args(argv)
@@ -155,6 +168,8 @@ def main(argv: list[str] | None = None) -> int:
             if ns.dry_run:
                 print(shlex.join(cmd))
                 return 0
+            if os.environ.get("MAD_NO_TTY_CHECK") != "1":
+                _require_tty()
             exec_command(cmd)
 
         if ns.cmd == "check":

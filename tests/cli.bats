@@ -7,6 +7,7 @@ setup() {
   export MAD_AGY_BIN="$REPO/tests/stub_cli.sh"
   export MAD_CLAUDE_PROJECTS_DIR="$BATS_TEST_TMPDIR/claude_projects"
   export STUB_OUT="$BATS_TEST_TMPDIR/argv"
+  export MAD_NO_TTY_CHECK=1
   cd "$BATS_TEST_TMPDIR"
   mkdir -p .git "$MAD_CLAUDE_PROJECTS_DIR"
 }
@@ -116,6 +117,16 @@ EOF
   grep -Fq -- "--model" "$STUB_OUT"
   grep -Fq "gemini-4-argon-high" "$STUB_OUT"
   grep -Fq "## Unresolved problem" "$STUB_OUT"
+}
+
+@test "handoff exits nonzero without a controlling TTY" {
+  run "$MAD" handoff --write --agent claude --problem "p" --step "s"
+  [ "$status" -eq 0 ]
+  unset MAD_NO_TTY_CHECK
+  run setsid -w "$MAD" handoff
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"no controlling terminal"* ]]
+  [ ! -e "$STUB_OUT" ]
 }
 
 @test "check stub exits 0 by default and 10 when MAD_FORCE_HANDOFF=1" {
